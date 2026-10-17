@@ -290,7 +290,7 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
         )
         insert_chapters(database, story)
         database.commit()
-        return jsonify(story=story)
+        return jsonify(story=get_story(story_id))
 
     @app.delete("/api/stories/<story_id>")
     @author_required
