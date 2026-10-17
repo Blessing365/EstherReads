@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f4ee">
+  <title>Author Sign In — Between the Lines</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f7f4ee;
+      --ink: #24332f;
+      --muted: #777c71;
+      --line: #e6e1d7;
+      --green: #536e5e;
+      --green-dark: #344d40;
+      --card: #fffefa;
+      --serif: "Playfair Display", Georgia, serif;
+      --sans: "DM Sans", Arial, sans-serif;
+      font-family: var(--sans);
+      color: var(--ink);
+      background: var(--paper);
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+    * { box-sizing: border-box; }
+    body { min-width: 320px; min-height: 100vh; margin: 0; }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .topbar { height: 76px; border-bottom: 1px solid rgba(66, 76, 66, .1); }
+    .topbar-inner { width: min(1080px, calc(100% - 48px)); height: 100%; margin: auto; display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 11px; }
+    .brand-mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; color: #fff; background: var(--green); font: 19px var(--serif); }
+    .brand-name { font: 600 17px var(--serif); }
+    .back-link { color: var(--green-dark); font-size: 11px; font-weight: 600; }
+    .back-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+    .layout { min-height: calc(100vh - 76px); display: grid; grid-template-columns: minmax(300px, 1fr) minmax(350px, 1fr); }
+    .art-panel { min-height: 660px; position: relative; overflow: hidden; display: flex; align-items: end; padding: clamp(35px, 7vw, 80px); color: #fffaf0; background: linear-gradient(0deg, rgba(30,46,39,.82), rgba(30,46,39,.05) 75%), url("https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1400&q=85") center/cover, #607869; }
+    .art-panel::before { content: ""; position: absolute; inset: 22px; border: 1px solid rgba(255,255,255,.45); pointer-events: none; }
+    .art-copy { position: relative; max-width: 430px; }
+    .art-quote { margin: 0 0 15px; font: 500 clamp(28px, 4vw, 42px)/1.2 var(--serif); }
+    .art-credit { margin: 0; color: rgba(255,250,240,.78); font-size: 10px; letter-spacing: 1.3px; text-transform: uppercase; }
+    .login-panel { display: grid; place-items: center; padding: 50px 30px; }
+    .login-card { width: min(390px, 100%); }
+    .eyebrow { color: #9c745e; font-size: 10px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; }
+    h1 { margin: 12px 0 9px; font: 500 37px/1.16 var(--serif); letter-spacing: -.7px; }
+    .intro { margin: 0 0 30px; color: var(--muted); font-size: 12px; line-height: 1.75; }
+    .form { display: grid; gap: 17px; }
+    .field { display: grid; gap: 7px; }
+    .field label { color: #505c52; font-size: 11px; font-weight: 700; }
+    .field input { width: 100%; min-height: 45px; border: 1px solid #dedbd2; border-radius: 5px; outline: none; padding: 11px 12px; color: var(--ink); background: var(--card); font-size: 12px; }
+    .field input:focus { border-color: #829986; box-shadow: 0 0 0 3px rgba(83,110,94,.1); }
+    .password-wrap { position: relative; }
+    .password-wrap input { padding-right: 68px; }
+    .toggle-password { position: absolute; top: 0; right: 0; height: 100%; border: 0; padding: 0 12px; background: transparent; color: var(--green-dark); font-size: 10px; font-weight: 700; }
+    .toggle-password:hover { text-decoration: underline; }
+    .form-options { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 10px; }
+    .remember { display: inline-flex; align-items: center; gap: 7px; }
+    .remember input { accent-color: var(--green); }
+    .button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: 5px; padding: 0 16px; font-size: 11px; font-weight: 700; transition: .2s; }
+    .button-primary { width: 100%; background: var(--green); color: white; }
+    .button-primary:hover { background: var(--green-dark); }
+    .status { min-height: 0; margin: 0; color: #8e493b; font-size: 11px; line-height: 1.6; }
+    .status:not(:empty) { padding: 11px 12px; border: 1px solid #ead8cf; border-radius: 5px; background: #fff8f5; }
+    .prototype-note { margin: 24px 0 0; padding-top: 17px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; line-height: 1.7; }
+    .prototype-note strong { color: #596457; }
+    .login-footer { margin-top: 24px; color: #898b81; text-align: center; font-size: 10px; }
+    .login-footer a { color: var(--green-dark); font-weight: 600; }
+    @media (max-width: 760px) {
+      .layout { min-height: calc(100vh - 66px); grid-template-columns: 1fr; }
+      .topbar { height: 66px; }
+      .topbar-inner { width: calc(100% - 30px); }
+      .brand-name { font-size: 15px; }
+      .art-panel { min-height: 220px; padding: 32px; }
+      .art-panel::before { inset: 12px; }
+      .art-quote { max-width: 360px; font-size: 27px; }
+      .login-panel { padding: 43px 25px 50px; }
+    }
+    @media (max-width: 400px) {
+      .back-link { font-size: 10px; }
+      .login-panel { padding-inline: 20px; }
+      h1 { font-size: 33px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html#home" aria-label="Between the Lines home">
+        <span class="brand-mark">b.</span>
+        <span class="brand-name">Between the Lines</span>
+      </a>
+      <a class="back-link" href="index.html#stories">← Back to stories</a>
+    </div>
+  </header>
+  <main class="layout">
+    <section class="art-panel" aria-label="A quiet mountain lake at dusk">
+      <div class="art-copy">
+        <p class="art-quote">“Every story begins with someone finding their way home.”</p>
+        <p class="art-credit">A little note from Clara</p>
+      </div>
+    </section>
+    <section class="login-panel">
+      <div class="login-card">
+        <div class="eyebrow">Reader &amp; author sign in</div>
+        <h1>Welcome back.</h1>
+        <p class="intro">Sign in to continue to your stories, chapters, or reader account.</p>
+        <form class="form" id="loginForm">
+          <div class="field">
+            <label for="email">Email address</label>
+            <input id="email" name="email" type="email" autocomplete="username" placeholder="you@example.com" required>
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <div class="password-wrap">
+              <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
+              <button class="toggle-password" id="togglePassword" type="button" aria-controls="password" aria-label="Show password">Show</button>
+            </div>
+          </div>
+          <div class="form-options">
+            <label class="remember"><input type="checkbox" name="remember"> Remember me</label>
+          </div>
+          <p class="status" id="loginStatus" role="status" aria-live="polite"></p>
+          <button class="button button-primary" type="submit">Sign in</button>
+        </form>
+        <p class="prototype-note"><strong>Need a reader account?</strong> <a href="register.html">Create one here</a>. Author accounts are created by the site owner. Your password is verified by the backend and is not saved in this browser.</p>
+        <div class="login-footer"><a href="index.html">Back to the website</a></div>
+      </div>
+    </section>
+  </main>
+  <script src="api.js"></script>
+  <script>
+    const form = document.getElementById("loginForm");
+    const password = document.getElementById("password");
+    const togglePassword = document.getElementById("togglePassword");
+    const status = document.getElementById("loginStatus");
+    const nextPage = new URLSearchParams(window.location.search).get("next");
+    function destinationFor(role) {
+      if (nextPage && /^(?:index|manage|detail|reader)\.html(?:\?[^#]*)?$/.test(nextPage)) {
+        return nextPage;
+      }
+      return role === "author" ? "manage.html" : "index.html";
+    }
+    togglePassword.addEventListener("click", () => {
+      const shouldShow = password.type === "password";
+      password.type = shouldShow ? "text" : "password";
+      togglePassword.textContent = shouldShow ? "Hide" : "Show";
+      togglePassword.setAttribute("aria-label", shouldShow ? "Hide password" : "Show password");
+    });
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      status.textContent = "";
+      const submit = form.querySelector('[type="submit"]');
+      submit.disabled = true;
+      try {
+        const session = await window.siteApi.request("/api/auth/login", {
+          method: "POST",
+          body: {
+            email: document.getElementById("email").value,
+            password: password.value,
+            remember: form.elements.remember.checked
+          }
+        });
+        password.value = "";
+        window.location.replace(destinationFor(session.role));
+      } catch (error) {
+        status.textContent = error.message || "Could not sign in. Please try again.";
+        password.value = "";
+      } finally {
+        submit.disabled = false;
+      }
+    });
+    window.siteApi.refreshSession().then(session => {
+      if (session.authenticated) window.location.replace(destinationFor(session.role));
+    }).catch(error => {
+      status.textContent = error.message || "Could not connect to the website backend.";
+    });
+  </script>
+</body>
+</html>
