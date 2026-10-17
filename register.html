@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f4ee">
+  <title>Create reader account — Between the Lines</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { color-scheme:light; --paper:#f7f4ee; --ink:#24332f; --muted:#777c71; --line:#e6e1d7; --green:#536e5e; --green-dark:#344d40; --card:#fffefa; --serif:"Playfair Display",Georgia,serif; --sans:"DM Sans",Arial,sans-serif; font-family:var(--sans); color:var(--ink); background:var(--paper); }
+    * { box-sizing:border-box; } body { min-width:320px; min-height:100vh; margin:0; display:grid; place-items:center; padding:28px 18px; } a { color:inherit; } button,input { font:inherit; }
+    .card { width:min(440px,100%); padding:clamp(25px,7vw,42px); border:1px solid var(--line); border-radius:8px; background:var(--card); box-shadow:0 18px 50px rgba(41,54,43,.07); }
+    .brand { display:flex; align-items:center; gap:11px; margin-bottom:35px; text-decoration:none; } .brand-mark { width:35px; height:35px; display:grid; place-items:center; border-radius:50%; background:var(--green); color:#fff; font:19px var(--serif); } .brand-name { font:600 16px var(--serif); }
+    .eyebrow { color:#9c745e; font-size:10px; font-weight:700; letter-spacing:1.8px; text-transform:uppercase; } h1 { margin:9px 0 9px; font:500 36px/1.16 var(--serif); } .intro { margin:0 0 25px; color:var(--muted); font-size:12px; line-height:1.8; }
+    form { display:grid; gap:15px; } .field { display:grid; gap:6px; } .field label { color:#505c52; font-size:10px; font-weight:700; } .field input { width:100%; border:1px solid #dedbd2; border-radius:5px; outline:none; padding:11px; background:#fffefa; color:var(--ink); font-size:12px; } .field input:focus { border-color:#829986; box-shadow:0 0 0 3px rgba(83,110,94,.1); }
+    .hint { color:#92948b; font-size:10px; } .button { min-height:43px; border:0; border-radius:5px; background:var(--green); color:white; font-size:11px; font-weight:700; cursor:pointer; } .button:hover { background:var(--green-dark); } .button:disabled { opacity:.65; cursor:wait; }
+    .status { min-height:17px; margin:0; color:var(--green-dark); font-size:11px; line-height:1.6; } .status.error { color:#9b4938; } .footer { margin-top:22px; color:var(--muted); text-align:center; font-size:10px; line-height:1.8; } .footer a { color:var(--green-dark); font-weight:700; text-underline-offset:3px; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <a class="brand" href="index.html"><span class="brand-mark">b.</span><span class="brand-name">Between the Lines</span></a>
+    <div class="eyebrow">Join the reading community</div>
+    <h1>Create an account.</h1>
+    <p class="intro">A reader account lets you leave chapter comments and story reviews. Submissions are shown publicly after the author approves them.</p>
+    <form id="registerForm">
+      <div class="field"><label for="displayName">Display name</label><input id="displayName" name="displayName" autocomplete="nickname" maxlength="60" required></div>
+      <div class="field"><label for="email">Email address</label><input id="email" name="email" type="email" autocomplete="email" maxlength="254" required></div>
+      <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="new-password" minlength="12" required><span class="hint">At least 12 characters.</span></div>
+      <div class="field"><label for="confirmPassword">Confirm password</label><input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" minlength="12" required></div>
+      <p class="status" id="registerStatus" role="status" aria-live="polite"></p>
+      <button class="button" type="submit">Create reader account</button>
+    </form>
+    <p class="footer">Already have an account? <a id="loginLink" href="login.html">Sign in</a><br><a href="index.html">Back to the stories</a></p>
+  </main>
+  <script src="api.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const nextPage = params.get("next");
+    function destinationFor(role) {
+      if (nextPage && /^(?:index|manage|detail|reader)\.html(?:\?[^#]*)?$/.test(nextPage)) return nextPage;
+      return role === "author" ? "manage.html" : "index.html";
+    }
+    document.getElementById("loginLink").href = `login.html${nextPage ? `?next=${encodeURIComponent(nextPage)}` : ""}`;
+    const form = document.getElementById("registerForm");
+    const status = document.getElementById("registerStatus");
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      status.textContent = "";
+      status.classList.remove("error");
+      const password = form.elements.password.value;
+      if (password !== form.elements.confirmPassword.value) {
+        status.textContent = "The passwords do not match.";
+        status.classList.add("error");
+        return;
+      }
+      const submit = form.querySelector('[type="submit"]');
+      submit.disabled = true;
+      try {
+        const result = await window.siteApi.request("/api/auth/register", {
+          method: "POST",
+          body: {
+            displayName: form.elements.displayName.value,
+            email: form.elements.email.value,
+            password
+          }
+        });
+        form.reset();
+        window.location.replace(destinationFor(result.role));
+      } catch (error) {
+        status.textContent = error.message || "Could not create your account.";
+        status.classList.add("error");
+      } finally {
+        submit.disabled = false;
+      }
+    });
+    window.siteApi.refreshSession().then(session => {
+      if (session.authenticated) window.location.replace(destinationFor(session.role));
+    }).catch(error => {
+      status.textContent = error.message || "Could not connect to the website backend.";
+      status.classList.add("error");
+    });
+  </script>
+</body>
+</html>

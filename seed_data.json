@@ -1,0 +1,59 @@
+{
+  "bio": "I'm Clara, a writer, daydreamer, and enthusiastic collector of stories. I believe the most meaningful things often happen quietly—in a familiar place, over a cup of tea, or in the pause between one chapter and the next.\n\nWhen I'm not writing, you'll find me wandering the coast, tending to an unruly garden, or reading just one more page. Thank you for being here. I hope you find a little piece of yourself in these pages.",
+  "stories": [
+    {
+      "id": "place-we-return",
+      "title": "The Place We Return To",
+      "description": "Somewhere between the old oak tree and the river, everything began again.",
+      "genre": "Literary fiction",
+      "updated": "A quiet adventure",
+      "cover": "cover-one",
+      "chapters": [
+        {
+          "title": "The road home",
+          "body": "The train slowed just as the afternoon light turned honey-gold. Clara watched the familiar hills rise beyond the glass, softened by years away and the rain that had followed her all the way north.\n\nAt the little station, the clock was still five minutes fast. Some things, she thought, had never learned to wait."
+        },
+        {
+          "title": "An open window",
+          "body": "The house smelled of cedar, dust, and the lemon soap her mother used to keep beside the kitchen sink. Upstairs, a window stood open to the garden. A breeze moved the curtains as if the house were breathing her name."
+        }
+      ]
+    },
+    {
+      "id": "small-hours",
+      "title": "A Map of Small Hours",
+      "description": "A night-shift baker discovers that the city has a softer side after midnight.",
+      "genre": "Contemporary",
+      "updated": "A city after dark",
+      "cover": "cover-two",
+      "chapters": [
+        {
+          "title": "Before the first light",
+          "body": "At 3:17 every morning, the bakery belonged to June and the blue hour. She measured flour by feel, listened to the old pipes tick, and watched the dark windows across the street slowly gather stars."
+        },
+        {
+          "title": "The usual order",
+          "body": "He came in on a Thursday, when the rain had made a mirror of the pavement. One black coffee, no sugar. Then, after a pause, a cinnamon roll for someone he hadn't met yet."
+        }
+      ]
+    },
+    {
+      "id": "blue-between",
+      "title": "The Blue Between",
+      "description": "Two sisters, one summer by the sea, and everything they never quite said.",
+      "genre": "Coming of age",
+      "updated": "A summer by the sea",
+      "cover": "cover-three",
+      "chapters": [
+        {
+          "title": "Salt on the windows",
+          "body": "The cottage windows were always blue with sea light. Mara said it was the paint. Elise said it was the ocean trying to get in. Neither of them opened the curtains until noon."
+        },
+        {
+          "title": "The tide comes back",
+          "body": "They found the letter under a loose board, folded into a small square. Their father's handwriting slanted forward, as if even on paper he had somewhere else to be."
+        }
+      ]
+    }
+  ]
+}

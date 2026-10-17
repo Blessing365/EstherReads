@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f4ee">
+  <title>Story — Between the Lines</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { color-scheme: light; --paper:#f7f4ee; --ink:#24332f; --muted:#777c71; --line:#e6e1d7; --green:#536e5e; --green-dark:#344d40; --card:#fffefa; --serif:"Playfair Display",Georgia,serif; --sans:"DM Sans",Arial,sans-serif; font-family:var(--sans); color:var(--ink); background:var(--paper); font-synthesis:none; text-rendering:optimizeLegibility; }
+    * { box-sizing:border-box; } body { min-width:320px; min-height:100vh; margin:0; } a { color:inherit; text-decoration:none; } button,input,textarea,select { font:inherit; } button { cursor:pointer; }
+    .topbar { height:76px; border-bottom:1px solid var(--line); background:rgba(255,254,250,.75); } .topbar-inner { width:min(1040px,calc(100% - 48px)); height:100%; margin:auto; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+    .brand { display:flex; align-items:center; gap:11px; } .brand-mark { display:grid; place-items:center; width:35px; height:35px; border-radius:50%; color:white; background:var(--green); font:19px var(--serif); } .brand-name { font:600 16px var(--serif); }
+    .back-link { color:var(--green-dark); font-size:11px; font-weight:600; } .page { width:min(940px,calc(100% - 40px)); margin:auto; padding:52px 0 72px; }
+    .eyebrow { color:#9c745e; font-size:10px; font-weight:700; letter-spacing:1.8px; text-transform:uppercase; } .story-intro { display:grid; grid-template-columns:minmax(230px, .8fr) 1.2fr; gap:clamp(28px,6vw,68px); align-items:center; }
+    .cover { min-height:360px; position:relative; overflow:hidden; border-radius:6px; background:linear-gradient(145deg,#c6d0bb,#67806d 58%,#334b40); box-shadow:0 20px 48px rgba(42,56,45,.14); }
+    .cover.cover-one { background:linear-gradient(145deg,#d6d7c5,#758b77 55%,#354b40); } .cover.cover-two { background:linear-gradient(145deg,#d7c7ad,#a18469 55%,#4a5547); } .cover.cover-three { background:linear-gradient(145deg,#b9cbd0,#62858a 55%,#344c51); }
+    .cover::after { content:""; position:absolute; inset:15px; border:1px solid rgba(255,255,255,.54); pointer-events:none; } .cover img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+    .cover-caption { position:absolute; z-index:1; inset:auto 27px 30px; color:#fffaf0; text-shadow:0 2px 15px rgba(0,0,0,.38); } .cover-caption span { font-size:9px; letter-spacing:1.8px; text-transform:uppercase; } .cover-caption strong { display:block; margin-top:10px; font:500 26px/1.16 var(--serif); }
+    h1 { margin:10px 0 13px; font:500 clamp(36px,5vw,52px)/1.12 var(--serif); letter-spacing:-.8px; } .story-meta { margin:0 0 17px; color:var(--muted); font-size:10px; letter-spacing:.7px; text-transform:uppercase; }
+    .short-description { margin:0 0 16px; color:#697268; font:italic 17px/1.75 var(--serif); } .blurb { color:#505b52; font:15px/1.9 var(--serif); white-space:pre-line; }
+    .button { display:inline-flex; align-items:center; justify-content:center; min-height:41px; border:1px solid transparent; border-radius:5px; padding:0 15px; background:var(--green); color:#fff; font-size:11px; font-weight:700; } .button:hover { background:var(--green-dark); }
+    .section { margin-top:57px; padding-top:29px; border-top:1px solid var(--line); } .section-heading { display:flex; align-items:end; justify-content:space-between; gap:16px; margin-bottom:18px; } .section-heading h2 { margin:7px 0 0; font:500 29px var(--serif); } .section-heading p { margin:5px 0 0; color:var(--muted); font-size:11px; }
+    .chapter-list { display:grid; border-top:1px solid var(--line); } .chapter-row { display:grid; grid-template-columns:46px 1fr auto; align-items:center; gap:12px; border-bottom:1px solid var(--line); padding:16px 6px; transition:background .2s; } .chapter-row:hover { background:rgba(255,254,250,.72); }
+    .chapter-number { color:#a17f69; font:16px var(--serif); } .chapter-title { font:500 16px var(--serif); } .chapter-read { color:var(--green-dark); font-size:10px; font-weight:700; }
+    .review-summary { color:#91704e; font-size:11px; } .review-list { display:grid; gap:12px; margin:19px 0 24px; } .review-card,.empty { padding:17px 18px; border:1px solid var(--line); border-radius:6px; background:var(--card); }
+    .review-card h3 { margin:5px 0 8px; font:500 18px var(--serif); } .review-meta { margin:0; color:#947858; font-size:9px; letter-spacing:.7px; text-transform:uppercase; } .review-body { margin:0; color:#596157; font:13px/1.75 var(--serif); white-space:pre-line; }
+    .form { max-width:620px; display:grid; gap:13px; margin-top:24px; padding:20px; border:1px solid var(--line); border-radius:7px; background:var(--card); } .form h3 { margin:0; font:500 21px var(--serif); }
+    .field { display:grid; gap:6px; } .field label { color:#505c52; font-size:10px; font-weight:700; } .field input,.field textarea,.field select { width:100%; border:1px solid #dedbd2; border-radius:5px; outline:none; padding:10px 11px; background:#fffefa; color:var(--ink); font-size:12px; }
+    .field textarea { min-height:98px; resize:vertical; line-height:1.65; } .field :focus { border-color:#829986; box-shadow:0 0 0 3px rgba(83,110,94,.1); }
+    .form-status { margin:0; color:var(--green-dark); font-size:11px; line-height:1.55; } .form-status.error { color:#9b4938; } .signin-note { margin:17px 0 0; color:var(--muted); font-size:11px; line-height:1.7; } .signin-note a { color:var(--green-dark); font-weight:700; text-decoration:underline; text-underline-offset:3px; }
+    .not-found { padding:80px 15px; text-align:center; } .not-found h1 { font-size:34px; } .not-found p { color:var(--muted); }
+    @media(max-width:650px) { .topbar { height:66px; } .topbar-inner { width:calc(100% - 30px); } .brand-name { font-size:14px; } .back-link { font-size:10px; } .page { width:calc(100% - 32px); padding-top:34px; } .story-intro { grid-template-columns:1fr; gap:25px; } .cover { min-height:330px; width:min(100%,350px); } .section { margin-top:41px; } .section-heading h2 { font-size:25px; } }
+    @media(max-width:400px) { .cover { min-height:285px; } .chapter-row { grid-template-columns:35px 1fr auto; gap:8px; } .chapter-title { font-size:14px; } .form { padding:16px; } }
+  </style>
+</head>
+<body>
+  <header class="topbar"><div class="topbar-inner">
+    <a class="brand" href="index.html#home" aria-label="Between the Lines home"><span class="brand-mark">b.</span><span class="brand-name">Between the Lines</span></a>
+    <a class="back-link" href="index.html#stories">← Back to stories</a>
+  </div></header>
+  <main class="page" id="detailPage" aria-live="polite"></main>
+  <script src="api.js"></script>
+  <script>
+    const storyId = new URLSearchParams(window.location.search).get("story");
+    const page = document.getElementById("detailPage");
+    let story;
+    let sessionInfo;
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, character => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      })[character]);
+    }
+    function authLinks() {
+      const next = `detail.html?story=${encodeURIComponent(story.id)}`;
+      if (sessionInfo?.role === "author") {
+        return `<p class="signin-note">Only reader accounts can post feedback. <a href="register.html?next=${encodeURIComponent(next)}">Create a reader account</a>. All feedback is checked by the author before it appears.</p>`;
+      }
+      return `<p class="signin-note">To leave a review or chapter comment, <a href="login.html?next=${encodeURIComponent(next)}">sign in</a> or <a href="register.html?next=${encodeURIComponent(next)}">create a reader account</a>. All feedback is checked by the author before it appears.</p>`;
+    }
+    async function renderDetail() {
+      const content = await window.siteApi.request("/api/public");
+      story = content.stories.find(item => item.id === storyId);
+      if (!story) {
+        page.innerHTML = '<div class="not-found"><div class="eyebrow">A missing page</div><h1>We couldn’t find that story.</h1><p>It may have been moved or removed.</p><a class="back-link" href="index.html#stories">Return to the story collection →</a></div>';
+        return;
+      }
+      const [reviews, currentSession] = await Promise.all([
+        window.siteApi.request(`/api/stories/${encodeURIComponent(story.id)}/feedback`),
+        window.siteApi.refreshSession()
+      ]);
+      sessionInfo = currentSession;
+      document.title = `${story.title} — Between the Lines`;
+      const average = reviews.reviews.length
+        ? (reviews.reviews.reduce((total, review) => total + review.rating, 0) / reviews.reviews.length).toFixed(1)
+        : null;
+      page.innerHTML = `
+        <section class="story-intro">
+          <div class="cover ${story.coverImage ? "" : escapeHtml(story.cover)}">
+            ${story.coverImage ? `<img src="${escapeHtml(story.coverImage)}" alt="Cover for ${escapeHtml(story.title)}">` : ""}
+            <div class="cover-caption"><span>${escapeHtml(story.genre || "A story")}</span><strong>${escapeHtml(story.title)}</strong></div>
+          </div>
+          <div>
+            <div class="eyebrow">A story by Clara Bennett</div>
+            <h1>${escapeHtml(story.title)}</h1>
+            <p class="story-meta">${escapeHtml(story.genre || "Story")} · ${story.chapters.length} chapters</p>
+            <p class="short-description">${escapeHtml(story.description)}</p>
+            <div class="blurb">${escapeHtml(story.blurb || story.description)}</div>
+          </div>
+        </section>
+        <section class="section" aria-labelledby="chaptersTitle">
+          <div class="section-heading"><div><div class="eyebrow">The story unfolds</div><h2 id="chaptersTitle">Chapters</h2><p>Choose a chapter and settle in.</p></div></div>
+          <div class="chapter-list">${story.chapters.map((chapter, index) => `
+            <a class="chapter-row" href="reader.html?story=${encodeURIComponent(story.id)}&chapter=${index}">
+              <span class="chapter-number">${String(index + 1).padStart(2, "0")}</span>
+              <span class="chapter-title">${escapeHtml(chapter.title)}</span>
+              <span class="chapter-read">Read →</span>
+            </a>`).join("")}
+          </div>
+        </section>
+        <section class="section" aria-labelledby="reviewsTitle">
+          <div class="section-heading"><div><div class="eyebrow">From fellow readers</div><h2 id="reviewsTitle">Reviews</h2></div>
+            <span class="review-summary">${average ? `★ ${average} · ${reviews.reviews.length} ${reviews.reviews.length === 1 ? "review" : "reviews"}` : "No approved reviews yet"}</span>
+          </div>
+          <div class="review-list" id="reviewList"></div>
+          <div id="reviewFormHost"></div>
+        </section>`;
+      renderReviews(reviews.reviews);
+      renderReviewForm();
+    }
+    function renderReviews(reviews) {
+      const list = document.getElementById("reviewList");
+      list.innerHTML = reviews.length ? reviews.map(review => `
+        <article class="review-card">
+          <p class="review-meta">${"★".repeat(review.rating)}${"☆".repeat(5 - review.rating)} · ${escapeHtml(review.displayName)}</p>
+          <h3>${escapeHtml(review.title)}</h3>
+          <p class="review-body">${escapeHtml(review.body)}</p>
+        </article>`).join("") : '<div class="empty"><p class="review-body">No approved reviews yet. Be the first to share your thoughts.</p></div>';
+    }
+    function renderReviewForm() {
+      const host = document.getElementById("reviewFormHost");
+      if (!sessionInfo.authenticated || sessionInfo.role !== "reader") {
+        host.innerHTML = authLinks();
+        return;
+      }
+      host.innerHTML = `
+        <form class="form" id="reviewForm">
+          <h3>Leave a review</h3>
+          <div class="field"><label for="rating">Your rating</label><select id="rating" name="rating" required><option value="">Choose a rating</option><option value="5">★★★★★ — Loved it</option><option value="4">★★★★☆ — Enjoyed it</option><option value="3">★★★☆☆ — It was good</option><option value="2">★★☆☆☆ — Not for me</option><option value="1">★☆☆☆☆ — Disappointed</option></select></div>
+          <div class="field"><label for="reviewTitle">Review title</label><input id="reviewTitle" name="title" maxlength="100" required></div>
+          <div class="field"><label for="reviewBody">Your review</label><textarea id="reviewBody" name="body" maxlength="2000" required></textarea></div>
+          <p class="form-status" role="status" aria-live="polite"></p>
+          <button class="button" type="submit">Submit review</button>
+          <p class="form-status">Your review will appear here after the author approves it.</p>
+        </form>`;
+      document.getElementById("reviewForm").addEventListener("submit", submitReview);
+    }
+    async function submitReview(event) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const status = form.querySelector('[role="status"]');
+      const submit = form.querySelector('[type="submit"]');
+      submit.disabled = true;
+      status.classList.remove("error");
+      try {
+        const data = new FormData(form);
+        const result = await window.siteApi.request(`/api/stories/${encodeURIComponent(story.id)}/reviews`, {
+          method: "POST",
+          body: { rating: Number(data.get("rating")), title: data.get("title"), body: data.get("body") }
+        });
+        status.textContent = result.message;
+        form.reset();
+      } catch (error) {
+        status.textContent = error.message || "Could not submit review.";
+        status.classList.add("error");
+      } finally {
+        submit.disabled = false;
+      }
+    }
+    renderDetail().catch(error => {
+      console.error("Story page could not be loaded.", error);
+      page.innerHTML = `<div class="not-found"><div class="eyebrow">A pause in the story</div><h1>We couldn’t load this story.</h1><p>${escapeHtml(error.message || "Please try again.")}</p><a class="back-link" href="index.html#stories">Return to the story collection →</a></div>`;
+    });
+  </script>
+</body>
+</html>

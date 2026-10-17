@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f4ee">
+  <title>Reading — Between the Lines</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f7f4ee;
+      --ink: #24332f;
+      --muted: #777c71;
+      --line: #e6e1d7;
+      --green: #536e5e;
+      --green-dark: #344d40;
+      --card: #fffefa;
+      --serif: "Playfair Display", Georgia, serif;
+      --sans: "DM Sans", Arial, sans-serif;
+      font-family: var(--sans);
+      color: var(--ink);
+      background: var(--paper);
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+    * { box-sizing: border-box; }
+    body { min-width: 320px; min-height: 100vh; margin: 0; }
+    a { color: inherit; text-decoration: none; }
+    button, select { font: inherit; }
+    button { cursor: pointer; }
+    .topbar { height: 76px; border-bottom: 1px solid var(--line); background: rgba(255,254,250,.75); }
+    .topbar-inner { width: min(920px, calc(100% - 48px)); height: 100%; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { display: flex; align-items: center; gap: 11px; }
+    .brand-mark { display: grid; place-items: center; width: 35px; height: 35px; border-radius: 50%; color: #fff; background: var(--green); font: 19px var(--serif); }
+    .brand-name { font: 600 16px var(--serif); }
+    .back-link { color: var(--green-dark); font-size: 12px; font-weight: 600; }
+    .back-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+    .page { width: min(720px, calc(100% - 40px)); margin: 0 auto; padding: 61px 0 70px; }
+    .story-heading { padding-bottom: 26px; border-bottom: 1px solid var(--line); }
+    .eyebrow { color: #9c745e; font-size: 10px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; }
+    h1 { margin: 12px 0 10px; font: 500 clamp(32px, 6vw, 45px)/1.15 var(--serif); letter-spacing: -.7px; }
+    .story-summary { margin: 0; color: var(--muted); font: 14px/1.7 var(--serif); }
+    .chapter-bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 22px 0 0; }
+    .chapter-count { color: var(--muted); font-size: 10px; letter-spacing: .5px; text-transform: uppercase; }
+    .chapter-select { max-width: 55%; border: 1px solid var(--line); border-radius: 5px; padding: 9px 30px 9px 11px; background: var(--card); color: var(--ink); font-size: 11px; }
+    .chapter { padding: 44px 0 50px; }
+    .chapter h2 { margin: 0 0 26px; font: 500 31px/1.25 var(--serif); }
+    .chapter-body { color: #454f48; font: 18px/2.05 var(--serif); white-space: pre-line; }
+    .chapter-body p { margin: 0 0 1.4em; }
+    .chapter-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; border-top: 1px solid var(--line); padding-top: 23px; }
+    .chapter-nav button { min-height: 64px; display: flex; flex-direction: column; justify-content: center; gap: 5px; border: 1px solid var(--line); border-radius: 6px; padding: 10px 15px; text-align: left; background: var(--card); color: var(--ink); transition: .2s; }
+    .chapter-nav button:last-child { align-items: flex-end; text-align: right; }
+    .chapter-nav button:not(:disabled):hover { border-color: #9aaf9b; color: var(--green-dark); transform: translateY(-2px); }
+    .chapter-nav button:disabled { cursor: default; opacity: .5; }
+    .nav-label { color: var(--muted); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; }
+    .nav-title { font: 500 14px var(--serif); }
+    .end-note { margin: 24px 0 0; color: var(--muted); text-align: center; font: italic 13px var(--serif); }
+    .comments { margin: 0 0 30px; padding: 22px 0 26px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .comments-heading { margin: 0 0 15px; font: 500 22px var(--serif); }
+    .comment-list { display: grid; gap: 10px; }
+    .comment-card { padding: 13px 15px; border: 1px solid var(--line); border-radius: 5px; background: var(--card); }
+    .comment-meta { margin: 0 0 6px; color: #927454; font-size: 9px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; }
+    .comment-body { margin: 0; color: #596157; font: 13px/1.75 var(--serif); white-space: pre-line; }
+    .comment-form { display: grid; gap: 9px; margin-top: 16px; }
+    .comment-form textarea { width: 100%; min-height: 86px; border: 1px solid #dedbd2; border-radius: 5px; padding: 10px; background: var(--card); color: var(--ink); font: 13px/1.7 var(--serif); resize: vertical; }
+    .comment-form textarea:focus { outline: 2px solid rgba(83,110,94,.2); border-color: #829986; }
+    .comment-form button { justify-self: start; min-height: 37px; border: 0; border-radius: 5px; padding: 0 13px; background: var(--green); color: white; font-size: 10px; font-weight: 700; }
+    .comment-form button:disabled { opacity: .65; cursor: wait; }
+    .comment-status,.comment-signin { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.7; }
+    .comment-status { color: var(--green-dark); }
+    .comment-status.error { color: #9b4938; }
+    .comment-signin a { color: var(--green-dark); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+    .not-found { margin-top: 100px; text-align: center; }
+    .not-found h1 { font-size: 34px; }
+    .not-found p { color: var(--muted); font-size: 13px; }
+    @media (max-width: 520px) {
+      .topbar { height: 66px; }
+      .topbar-inner { width: calc(100% - 30px); }
+      .brand-name { font-size: 14px; }
+      .back-link { font-size: 10px; }
+      .page { width: calc(100% - 34px); padding-top: 42px; }
+      .chapter { padding: 33px 0 38px; }
+      .chapter h2 { font-size: 27px; }
+      .chapter-body { font-size: 17px; line-height: 1.9; }
+      .chapter-nav { gap: 9px; }
+      .chapter-nav button { min-height: 60px; padding: 9px; }
+      .nav-title { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html#home" aria-label="Between the Lines home">
+        <span class="brand-mark">b.</span>
+        <span class="brand-name">Between the Lines</span>
+      </a>
+      <a class="back-link" href="index.html#stories">← Back to all stories</a>
+    </div>
+  </header>
+  <main class="page" id="readingPage" aria-live="polite"></main>
+  <script src="api.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const storyId = params.get("story");
+    let story = null;
+    let sessionInfo = null;
+    const page = document.getElementById("readingPage");
+    let chapterIndex = Number(params.get("chapter")) || 0;
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, character => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      })[character]);
+    }
+    function renderNotFound() {
+      document.title = "Story not found — Between the Lines";
+      page.innerHTML = '<div class="not-found"><div class="eyebrow">A missing page</div><h1>We couldn’t find that story.</h1><p>It may have been moved or removed.</p><a class="back-link" href="index.html#stories">Return to the story collection →</a></div>';
+    }
+    function updateChapter(nextIndex, addHistory) {
+      if (!story || nextIndex < 0 || nextIndex >= story.chapters.length) return;
+      chapterIndex = nextIndex;
+      const nextUrl = new URL(window.location.href);
+      nextUrl.searchParams.set("chapter", String(chapterIndex));
+      if (addHistory) window.history.pushState({}, "", nextUrl);
+      else window.history.replaceState({}, "", nextUrl);
+      renderChapter();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    function renderChapter() {
+      if (!story || !Array.isArray(story.chapters) || !story.chapters.length) {
+        renderNotFound();
+        return;
+      }
+      chapterIndex = Math.max(0, Math.min(chapterIndex, story.chapters.length - 1));
+      const chapter = story.chapters[chapterIndex];
+      const previous = story.chapters[chapterIndex - 1];
+      const next = story.chapters[chapterIndex + 1];
+      document.title = `${story.title} — ${chapter.title} | Between the Lines`;
+      page.innerHTML = `
+        <header class="story-heading">
+          <div class="eyebrow">${escapeHtml(story.genre || "A story by Clara Bennett")}</div>
+          <h1>${escapeHtml(story.title)}</h1>
+          <p class="story-summary">${escapeHtml(story.description || "")}</p>
+        </header>
+        <div class="chapter-bar">
+          <span class="chapter-count">Chapter ${chapterIndex + 1} of ${story.chapters.length}</span>
+          <select class="chapter-select" id="chapterSelect" aria-label="Choose a chapter">
+            ${story.chapters.map((item, index) => `<option value="${index}" ${index === chapterIndex ? "selected" : ""}>${String(index + 1).padStart(2, "0")} · ${escapeHtml(item.title)}</option>`).join("")}
+          </select>
+        </div>
+        <article class="chapter">
+          <h2>${escapeHtml(chapter.title)}</h2>
+          <div class="chapter-body">${escapeHtml(chapter.body)}</div>
+        </article>
+        <section class="comments" id="comments" aria-labelledby="commentsTitle">
+          <h2 class="comments-heading" id="commentsTitle">Chapter comments</h2>
+          <div class="comment-list" id="commentList"><p class="comment-signin">Loading approved comments…</p></div>
+          <div id="commentFormHost"></div>
+        </section>
+        <nav class="chapter-nav" aria-label="Chapter navigation">
+          <button type="button" data-chapter="${chapterIndex - 1}" ${previous ? "" : "disabled"}>
+            <span class="nav-label">← Previous chapter</span>
+            <span class="nav-title">${previous ? escapeHtml(previous.title) : "Beginning of story"}</span>
+          </button>
+          <button type="button" data-chapter="${chapterIndex + 1}" ${next ? "" : "disabled"}>
+            <span class="nav-label">${next ? "Next chapter →" : "End of story"}</span>
+            <span class="nav-title">${next ? escapeHtml(next.title) : "Thank you for reading"}</span>
+          </button>
+        </nav>
+        ${next ? "" : '<p class="end-note">You’ve reached the end of this story. Thank you for reading.</p>'}`;
+      document.getElementById("chapterSelect").addEventListener("change", event => {
+        updateChapter(Number(event.currentTarget.value), true);
+      });
+      renderComments(chapterIndex);
+    }
+    async function renderComments(position) {
+      const list = document.getElementById("commentList");
+      const formHost = document.getElementById("commentFormHost");
+      if (sessionInfo?.authenticated && sessionInfo.role === "reader") {
+        formHost.innerHTML = `
+          <form class="comment-form" id="commentForm">
+            <label class="comment-signin" for="commentBody">Add your thoughts on this chapter</label>
+            <textarea id="commentBody" name="body" maxlength="2000" required></textarea>
+            <p class="comment-status" id="commentStatus" role="status" aria-live="polite"></p>
+            <button type="submit">Submit comment</button>
+            <p class="comment-signin">Comments are published after the author approves them.</p>
+          </form>`;
+        document.getElementById("commentForm").addEventListener("submit", submitComment);
+      } else {
+        const target = `reader.html?story=${encodeURIComponent(story.id)}&chapter=${position}`;
+        const prompt = sessionInfo?.role === "author"
+          ? `Chapter comments are for reader accounts. <a href="register.html?next=${encodeURIComponent(target)}">Create a reader account</a>.`
+          : `<a href="login.html?next=${encodeURIComponent(target)}">Sign in</a> · <a href="register.html?next=${encodeURIComponent(target)}">Create a reader account</a> to comment.`;
+        formHost.innerHTML = `<p class="comment-signin">${prompt}</p>`;
+      }
+      try {
+        const result = await window.siteApi.request(`/api/stories/${encodeURIComponent(story.id)}/feedback`);
+        if (position !== chapterIndex) return;
+        const comments = result.comments.filter(comment => comment.chapterPosition === position);
+        list.innerHTML = comments.length ? comments.map(comment => `
+          <article class="comment-card">
+            <p class="comment-meta">${escapeHtml(comment.displayName)} · ${new Date(comment.createdAt * 1000).toLocaleDateString()}</p>
+            <p class="comment-body">${escapeHtml(comment.body)}</p>
+          </article>`).join("") : '<p class="comment-signin">No approved comments yet. Be the first to share a thought.</p>';
+      } catch (error) {
+        if (position !== chapterIndex) return;
+        list.innerHTML = `<p class="comment-signin">${escapeHtml(error.message || "Could not load comments.")}</p>`;
+      }
+    }
+    async function submitComment(event) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const status = document.getElementById("commentStatus");
+      const submit = form.querySelector("button[type=submit]");
+      submit.disabled = true;
+      status.textContent = "";
+      status.classList.remove("error");
+      try {
+        const result = await window.siteApi.request(
+          `/api/stories/${encodeURIComponent(story.id)}/chapters/${chapterIndex}/comments`,
+          { method: "POST", body: { body: form.elements.body.value } }
+        );
+        form.reset();
+        status.textContent = result.message;
+      } catch (error) {
+        status.textContent = error.message || "Could not submit your comment.";
+        status.classList.add("error");
+      } finally {
+        submit.disabled = false;
+      }
+    }
+    page.addEventListener("click", event => {
+      const button = event.target.closest("button[data-chapter]");
+      if (button && !button.disabled) updateChapter(Number(button.dataset.chapter), true);
+    });
+    window.addEventListener("popstate", () => {
+      chapterIndex = Number(new URLSearchParams(window.location.search).get("chapter")) || 0;
+      renderChapter();
+    });
+    Promise.all([
+      window.siteApi.request("/api/public"),
+      window.siteApi.refreshSession()
+    ]).then(([content, currentSession]) => {
+      sessionInfo = currentSession;
+      story = content.stories.find(item => item.id === storyId);
+      if (!story) {
+        renderNotFound();
+        return;
+      }
+      chapterIndex = Math.max(0, Math.min(chapterIndex, story.chapters.length - 1));
+      renderChapter();
+    }).catch(error => {
+      page.innerHTML = `<div class="not-found"><div class="eyebrow">A pause in the story</div><h1>We couldn’t load this story.</h1><p>${escapeHtml(error.message || "Please try again in a moment.")}</p><a class="back-link" href="index.html#stories">Return to the story collection →</a></div>`;
+    });
+  </script>
+</body>
+</html>
