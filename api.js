@@ -1,12 +1,28 @@
 (function () {
   let csrfToken = "";
+  const backendUnavailableMessage = "The website backend is unavailable or returned a web page instead of JSON. GitHub Pages cannot run this site's Flask sign-in API; deploy the Flask backend separately to enable sign-in.";
+
+  async function readJson(response) {
+    const contentType = response.headers.get("Content-Type") || "";
+    if (!contentType.includes("json")) {
+      throw new Error(backendUnavailableMessage);
+    }
+    try {
+      return await response.json();
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        throw new Error(backendUnavailableMessage);
+      }
+      throw error;
+    }
+  }
 
   async function refreshSession() {
     const response = await fetch("/api/auth/session", {
       headers: { Accept: "application/json" },
       credentials: "same-origin"
     });
-    const result = await response.json();
+    const result = await readJson(response);
     if (!response.ok) throw new Error(result.error || "Could not check your sign-in.");
     csrfToken = result.csrfToken;
     return result;
@@ -31,12 +47,7 @@
       credentials: "same-origin",
       body: settings.body === undefined ? undefined : JSON.stringify(settings.body)
     });
-    let result;
-    try {
-      result = await response.json();
-    } catch {
-      result = {};
-    }
+    const result = await readJson(response);
     if (!response.ok) {
       const error = new Error(result.error || `Request failed (${response.status}).`);
       error.status = response.status;

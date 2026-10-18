@@ -22,11 +22,13 @@ Open `http://127.0.0.1:8765`. The SQLite database is created at `instance/storie
 
 The session secret must remain the same across server restarts to keep sessions valid. A random secret is fine for local development. For a deployment, set a stable secret of at least 32 characters, set `APP_ENV=production` so session cookies are secure-only, serve the site over HTTPS, and run Waitress behind an HTTPS-capable reverse proxy. Do not use Flask's development server for a public deployment.
 
+GitHub Pages only hosts static files and cannot run this site's Flask API. The sign-in, registration, story data, and author tools require the Flask application to be deployed on a Python-capable host; publish and serve the site through that application or configure a separately hosted backend.
+
 Create additional author accounts with `python app.py create-author another@example.com`. Reader accounts can be created from the **Create a reader account** link on the sign-in page. Reader sign-up never creates author access. Password hashes are stored in SQLite, login attempts are rate-limited, and state-changing API requests use CSRF protection.
 
 Each story has its own page with its cover image, blurb, and chapter list. Signed-in readers can leave one review per story and comments on chapters. Feedback is private until an author approves it from **Manage stories**; approved reviews then appear on the story page and comments at the end of their chapter. Authors can edit a story's blurb and upload a JPEG, PNG, or WebP cover image (up to 5 MB). Images are stored in `instance/uploads`; set `UPLOAD_FOLDER` to use another directory.
 
-Authors can also publish, edit, and delete standalone poems from the homepage. The public author sign-in link is hidden; author accounts can still sign in directly at `login.html`.
+Authors can also publish, edit, and delete standalone poems from the homepage. Visitors can sign in from the homepage; both reader and author accounts use `login.html`.
 
 ## Tests
 

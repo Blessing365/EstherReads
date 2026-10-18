@@ -244,12 +244,12 @@
       <nav class="nav" aria-label="Main navigation">
         <a href="#stories">Stories</a>
         <a id="manageLink" href="manage.html" hidden>Manage stories</a>
-        <a id="loginLink" href="login.html?next=index.html" hidden>Author sign in</a>
         <a href="#poems">Poems</a>
         <a href="#about">About Clara</a>
         <a href="#footer">Get in touch</a>
       </nav>
       <div class="nav-actions">
+        <a class="button button-primary button-small" id="loginLink" href="login.html?next=index.html">Sign in</a>
         <button class="button button-quiet button-small" id="editBioTop" type="button" hidden>Edit bio</button>
         <button class="button button-primary button-small" id="addStoryTop" type="button" hidden>
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
@@ -386,6 +386,7 @@
       document.querySelectorAll("#addStoryTop, #editBioTop, #editBio, #manageLink, #manageCollectionLink, #addPoem, #footerAuthorWrap").forEach(element => {
         element.hidden = !isAuthor;
       });
+      document.getElementById("loginLink").hidden = isSignedIn;
       document.getElementById("logoutTop").hidden = !isSignedIn;
       const grid = document.getElementById("storyGrid");
       if (!state.stories.length) {
