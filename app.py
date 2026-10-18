@@ -37,6 +37,7 @@ STATIC_FILES = {
     "reader.html",
     "detail.html",
     "register.html",
+    "poems.html",
     "api.js",
 }
 csrf = CSRFProtect()
@@ -113,6 +114,9 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
             stories=list_stories(),
             poems=list_poems(),
             bio=get_bio(),
+            authorName=get_setting("author_name"),
+            authorImage=get_setting("author_image"),
+            contactEmail=get_setting("contact_email"),
         )
 
     @app.get("/uploads/<path:filename>")
@@ -239,7 +243,7 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
         cover_index = database.execute("SELECT COUNT(*) FROM stories").fetchone()[0] % 3
         story["cover"] = f"cover-{('one', 'two', 'three')[cover_index]}"
         cover_image = payload.get("coverImage", "")
-        if cover_image and not valid_cover_path(cover_image):
+        if cover_image and not valid_uploaded_image_path(cover_image):
             return jsonify(error="Choose an uploaded cover image."), 400
         story["cover_image"] = cover_image
         story["sort_order"] = (
@@ -267,7 +271,7 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
         story["cover"] = existing["cover"]
         uploaded_cover = payload.get("coverImage")
         if uploaded_cover:
-            if not valid_cover_path(uploaded_cover):
+            if not valid_uploaded_image_path(uploaded_cover):
                 return jsonify(error="Choose an uploaded cover image."), 400
             story["cover_image"] = uploaded_cover
         else:
@@ -368,9 +372,60 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
         database.commit()
         return jsonify(bio=bio.strip())
 
+    @app.put("/api/author/profile")
+    @author_required
+    def update_author_profile():
+        payload = json_payload()
+        author_name = valid_text(payload, "authorName", 80)
+        author_image = payload.get("authorImage")
+        contact_email = payload.get("contactEmail")
+        bio = payload.get("bio")
+        if author_name is None:
+            return jsonify(error="Author name must be between 1 and 80 characters."), 400
+        if not isinstance(author_image, str) or (
+            author_image and not valid_uploaded_image_path(author_image)
+        ):
+            return jsonify(error="Choose an uploaded author photo or remove the current photo."), 400
+        if not isinstance(contact_email, str) or (
+            contact_email.strip() and not valid_email(contact_email)
+        ):
+            return jsonify(error="Enter a valid contact email address or leave it blank."), 400
+        if not isinstance(bio, str) or not bio.strip() or len(bio) > 1200:
+            return jsonify(error="Biography must be between 1 and 1,200 characters."), 400
+        bio = personalize_default_bio(bio.strip(), author_name)
+        if len(bio) > 1200:
+            return jsonify(error="Biography must be between 1 and 1,200 characters."), 400
+        database = get_database()
+        for key, value in (
+            ("author_name", author_name),
+            ("author_image", author_image),
+            ("contact_email", contact_email.strip().lower()),
+            ("bio", bio),
+        ):
+            database.execute(
+                "INSERT INTO settings (key, value) VALUES (?, ?) "
+                "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+                (key, value),
+            )
+        database.commit()
+        return jsonify(
+            authorName=author_name,
+            authorImage=author_image,
+            contactEmail=contact_email.strip().lower(),
+            bio=bio,
+        )
+
     @app.post("/api/uploads/story-cover")
     @author_required
     def upload_story_cover():
+        return upload_image()
+
+    @app.post("/api/uploads/author-photo")
+    @author_required
+    def upload_author_photo():
+        return upload_image()
+
+    def upload_image():
         image = request.files.get("image")
         if image is None or not image.filename:
             return jsonify(error="Choose an image file to upload."), 400
@@ -381,7 +436,7 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
             return jsonify(error="Upload a valid JPEG, PNG, or WebP image."), 400
         image_bytes = image.stream.read(current_app.config["MAX_IMAGE_BYTES"] + 1)
         if len(image_bytes) > current_app.config["MAX_IMAGE_BYTES"]:
-            return jsonify(error="Cover images must be 5 MB or smaller."), 413
+            return jsonify(error="Images must be 5 MB or smaller."), 413
         extension, mime_type = image_type
         filename = f"{uuid.uuid4().hex}{extension}"
         uploads = Path(current_app.config["UPLOAD_FOLDER"])
@@ -595,6 +650,18 @@ def initialize_database(app: Flask) -> None:
         "INSERT OR IGNORE INTO settings (key, value) VALUES ('bio', ?)",
         (seed["bio"],),
     )
+    for key, value in (
+        ("author_name", "Clara Bennett"),
+        (
+            "author_image",
+            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=700&q=85",
+        ),
+        ("contact_email", ""),
+    ):
+        connection.execute(
+            "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)",
+            (key, value),
+        )
     connection.commit()
     connection.close()
 
@@ -678,8 +745,20 @@ def list_poems() -> list[dict[str, Any]]:
 
 
 def get_bio() -> str:
+    return personalize_default_bio(get_setting("bio"), get_setting("author_name"))
+
+
+def personalize_default_bio(bio: str, author_name: str) -> str:
+    prefix = "I'm Clara,"
+    if bio.startswith(prefix) and author_name.strip():
+        first_name = author_name.strip().split(maxsplit=1)[0]
+        return f"I'm {first_name}," + bio[len(prefix):]
+    return bio
+
+
+def get_setting(key: str) -> str:
     row = get_database().execute(
-        "SELECT value FROM settings WHERE key = 'bio'"
+        "SELECT value FROM settings WHERE key = ?", (key,)
     ).fetchone()
     return row["value"] if row else ""
 
@@ -787,7 +866,7 @@ def valid_email(value: Any) -> str | None:
     return email
 
 
-def valid_cover_path(value: Any) -> bool:
+def valid_uploaded_image_path(value: Any) -> bool:
     return isinstance(value, str) and bool(
         re.fullmatch(r"/uploads/[a-f0-9]{32}\.(?:jpg|png|webp)", value)
     )

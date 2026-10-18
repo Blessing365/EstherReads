@@ -108,6 +108,7 @@
     const storyId = params.get("story");
     let story = null;
     let sessionInfo = null;
+    let authorName = "the author";
     const page = document.getElementById("readingPage");
     let chapterIndex = Number(params.get("chapter")) || 0;
 
@@ -142,7 +143,7 @@
       document.title = `${story.title} — ${chapter.title} | Between the Lines`;
       page.innerHTML = `
         <header class="story-heading">
-          <div class="eyebrow">${escapeHtml(story.genre || "A story by Clara Bennett")}</div>
+          <div class="eyebrow">${escapeHtml(story.genre || `A story by ${authorName}`)}</div>
           <h1>${escapeHtml(story.title)}</h1>
           <p class="story-summary">${escapeHtml(story.description || "")}</p>
         </header>
@@ -247,6 +248,7 @@
     ]).then(([content, currentSession]) => {
       sessionInfo = currentSession;
       story = content.stories.find(item => item.id === storyId);
+      authorName = content.authorName || "the author";
       if (!story) {
         renderNotFound();
         return;

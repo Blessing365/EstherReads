@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f7f4ee">
-  <title>Between the Lines — Stories by Clara Bennett</title>
+  <title>Between the Lines</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -149,13 +149,15 @@
     .poem-actions { display: flex; justify-content: end; gap: 12px; margin-top: 15px; }
     .poem-actions button, .poem-actions a { border: 0; padding: 4px 0; background: none; color: var(--green-dark); font-size: 10px; font-weight: 700; }
     .poem-actions button:hover, .poem-actions a:hover { color: #9c745e; }
+    .poem-more { color: var(--green-dark); font-size: 11px; font-weight: 700; white-space: nowrap; }
 
     .author-section { padding: 60px 0; background: #edece3; }
-    .author-grid { display: grid; grid-template-columns: 260px 1fr; align-items: center; gap: 68px; }
+    .home-info-grid { display: grid; grid-template-columns: minmax(0, 1fr) 270px; align-items: center; gap: 44px; }
+    .author-grid { display: grid; grid-template-columns: 210px 1fr; align-items: center; gap: 34px; }
+    .author-grid.no-photo { grid-template-columns: 1fr; }
     .author-photo {
       height: 285px; position: relative; border-radius: 4px;
-      background: linear-gradient(0deg, rgba(39, 54, 46, .12), rgba(39, 54, 46, .02)),
-        url("https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=700&q=85") center 36%/cover, #c7b3a0;
+      background-position: center 36%; background-size: cover; background-color: #c7b3a0;
     }
     .author-photo::after { content: ""; position: absolute; inset: 12px; border: 1px solid rgba(255,255,255,.6); }
     .author-copy { max-width: 620px; }
@@ -163,6 +165,12 @@
     .author-copy p { color: #6f766d; font-size: 13px; line-height: 1.9; white-space: pre-line; }
     .author-signoff { margin: 18px 0 0; color: var(--green); font: italic 22px var(--serif); }
     .author-actions { margin-top: 17px; }
+    .contact-card { padding: 27px 25px; border: 1px solid #e2dfd5; border-radius: 7px; background: var(--card); }
+    .contact-card h2 { margin: 9px 0 12px; font: 500 27px var(--serif); }
+    .contact-card p { color: #6f766d; font-size: 12px; line-height: 1.8; }
+    .contact-link { display: inline-block; margin-top: 5px; color: var(--green-dark); font-size: 12px; font-weight: 700; overflow-wrap: anywhere; }
+    .contact-card .button { margin-top: 8px; }
+    .photo-remove { display: flex; align-items: center; gap: 7px; color: #505c52; font-size: 10px; }
     .footer { padding: 22px 0; color: #85877f; font-size: 10px; }
     .footer-inner { display: flex; justify-content: space-between; gap: 20px; }
 
@@ -214,6 +222,7 @@
       .story-info p { min-height: 0; }
       .poem-grid { grid-template-columns: 1fr; }
       .author-section { padding: 43px 0; }
+      .home-info-grid { grid-template-columns: 1fr; gap: 30px; }
       .author-grid { grid-template-columns: 1fr; gap: 25px; }
       .author-photo { height: 260px; width: min(100%, 310px); }
       .author-copy h2 { font-size: 29px; }
@@ -244,13 +253,13 @@
       <nav class="nav" aria-label="Main navigation">
         <a href="#stories">Stories</a>
         <a id="manageLink" href="manage.html" hidden>Manage stories</a>
-        <a href="#poems">Poems</a>
-        <a href="#about">About Clara</a>
-        <a href="#footer">Get in touch</a>
+        <a href="poems.html">Poems</a>
+        <a href="#about">About the author</a>
+        <a href="#contact">Get in touch</a>
       </nav>
       <div class="nav-actions">
         <a class="button button-primary button-small" id="loginLink" href="login.html?next=index.html">Sign in</a>
-        <button class="button button-quiet button-small" id="editBioTop" type="button" hidden>Edit bio</button>
+        <button class="button button-quiet button-small" id="editBioTop" type="button" hidden>Edit author profile</button>
         <button class="button button-primary button-small" id="addStoryTop" type="button" hidden>
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
           Add a story
@@ -281,7 +290,7 @@
           <div class="art-cover">
             <div class="cover-label">A story in chapters</div>
             <h2 class="cover-title">The Place<br>We Return To</h2>
-            <div class="cover-author">Clara Bennett</div>
+            <div class="cover-author" id="coverAuthor"></div>
           </div>
           <div class="floating-note"><strong>Take your time.</strong> The best stories do.</div>
         </div>
@@ -310,31 +319,42 @@
             <h2>Poems</h2>
             <p>Short pieces to pause with between stories.</p>
           </div>
+          <a class="poem-more" href="poems.html">Browse all poems <span aria-hidden="true">→</span></a>
           <button class="button button-quiet button-small" id="addPoem" type="button" hidden>Add a poem</button>
         </div>
         <div class="poem-grid" id="poemGrid" aria-live="polite"></div>
       </div>
     </section>
 
-    <section class="author-section" id="about">
-      <div class="wrap author-grid">
-        <div class="author-photo" role="img" aria-label="Portrait of author Clara Bennett"></div>
-        <div class="author-copy">
-          <div class="eyebrow">A note from the author</div>
-          <h2>A little about Clara</h2>
-          <p id="authorBio"></p>
-          <div class="author-signoff">With warmth, Clara</div>
-          <div class="author-actions">
-            <button class="button button-quiet button-small" id="editBio" type="button" hidden>Edit biography</button>
+    <section class="author-section">
+      <div class="wrap home-info-grid">
+        <section class="author-grid" id="about" aria-labelledby="authorHeading">
+          <div class="author-photo" id="authorPhoto" role="img" aria-label="Portrait of the author"></div>
+          <div class="author-copy">
+            <div class="eyebrow">A note from the author</div>
+            <h2 id="authorHeading"></h2>
+            <p id="authorBio"></p>
+            <div class="author-signoff" id="authorSignoff"></div>
+            <div class="author-actions">
+              <button class="button button-quiet button-small" id="editBio" type="button" hidden>Edit author profile</button>
+            </div>
           </div>
-        </div>
+        </section>
+        <section class="contact-card" id="contact" aria-labelledby="contactHeading">
+          <div class="eyebrow">A note or a question?</div>
+          <h2 id="contactHeading">Get in touch</h2>
+          <p>Have a thought about a story, or simply want to say hello? I’d love to hear from you.</p>
+          <a class="contact-link" id="contactEmailLink" hidden></a>
+          <p id="contactEmpty">Contact details have not been added yet.</p>
+          <button class="button button-quiet button-small" id="editContact" type="button" hidden>Edit contact details</button>
+        </section>
       </div>
     </section>
   </main>
 
   <footer class="footer" id="footer">
     <div class="wrap footer-inner">
-      <span>© <span id="year"></span> Clara Bennett · Written slowly, shared gladly.</span>
+      <span>© <span id="year"></span> <span id="footerAuthorName"></span> · Written slowly, shared gladly.</span>
       <span>Made for stories worth staying up for.</span>
       <span id="footerLoginWrap" hidden><a id="footerLogin" href="login.html">Author sign in</a> · Made for stories worth staying up for.</span>
       <span id="footerAuthorWrap" hidden><a id="footerAuthor" href="manage.html">Manage stories</a> · Made for stories worth staying up for.</span>
@@ -355,7 +375,7 @@
 
   <script src="api.js"></script>
   <script>
-    let state = { stories: [], poems: [], bio: "" };
+    let state = { stories: [], poems: [], bio: "", authorName: "Clara Bennett", authorImage: "", contactEmail: "" };
     let isAuthor = false;
     let isSignedIn = false;
     function escapeHtml(value) {
@@ -367,25 +387,52 @@
       const session = await window.siteApi.refreshSession();
       return session.csrfToken;
     }
-    async function uploadCover(file) {
+    async function uploadImage(file, endpoint) {
       if (!(file instanceof File) || !file.size) return "";
       const formData = new FormData();
       formData.append("image", file);
-      const response = await fetch("/api/uploads/story-cover", {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "X-CSRFToken": await getCsrfToken(), Accept: "application/json" },
         credentials: "same-origin",
         body: formData
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Could not upload the cover.");
+      if (!response.ok) throw new Error(result.error || "Could not upload the image.");
       return result.url;
     }
     function render() {
       document.getElementById("authorBio").textContent = state.bio;
+      const authorName = state.authorName || "Author";
+      const firstName = authorName.trim().split(/\s+/)[0];
+      document.title = `Between the Lines — Stories by ${authorName}`;
+      document.getElementById("coverAuthor").textContent = authorName;
+      document.getElementById("authorHeading").textContent = `A little about ${firstName}`;
+      document.getElementById("authorSignoff").textContent = `With warmth, ${firstName}`;
+      document.getElementById("footerAuthorName").textContent = authorName;
+      const authorPhoto = document.getElementById("authorPhoto");
+      authorPhoto.hidden = !state.authorImage;
+      authorPhoto.parentElement.classList.toggle("no-photo", !state.authorImage);
+      authorPhoto.style.backgroundImage = state.authorImage
+        ? `linear-gradient(0deg, rgba(39, 54, 46, .12), rgba(39, 54, 46, .02)), url("${state.authorImage}")`
+        : "none";
+      authorPhoto.setAttribute("aria-label", state.authorImage ? `Portrait of ${authorName}` : "");
+      const contactLink = document.getElementById("contactEmailLink");
+      const contactEmpty = document.getElementById("contactEmpty");
+      contactLink.hidden = !state.contactEmail;
+      contactEmpty.hidden = Boolean(state.contactEmail);
+      if (state.contactEmail) {
+        contactLink.href = `mailto:${state.contactEmail}`;
+        contactLink.textContent = state.contactEmail;
+        contactLink.setAttribute("aria-label", `Email ${authorName}`);
+      } else {
+        contactLink.removeAttribute("href");
+        contactLink.textContent = "";
+      }
       document.querySelectorAll("#addStoryTop, #editBioTop, #editBio, #manageLink, #manageCollectionLink, #addPoem, #footerAuthorWrap").forEach(element => {
         element.hidden = !isAuthor;
       });
+      document.getElementById("editContact").hidden = !isAuthor;
       document.getElementById("loginLink").hidden = isSignedIn;
       document.getElementById("logoutTop").hidden = !isSignedIn;
       const grid = document.getElementById("storyGrid");
@@ -437,12 +484,16 @@
           <div class="field"><label for="poemTitle">Poem title</label><input id="poemTitle" name="poemTitle" maxlength="100" value="${escapeHtml(poem?.title || "")}" required></div>
           <div class="field"><label for="poemBody">Poem text</label><textarea id="poemBody" name="poemBody" maxlength="12000" required>${escapeHtml(poem?.body || "")}</textarea><span class="field-hint">Up to 12,000 characters. Line breaks are preserved.</span></div>
           <div class="form-actions"><button class="button button-quiet" type="button" data-close>Cancel</button><button class="button button-primary" type="submit">${poem ? "Save poem" : "Publish poem"}</button></div>`;
-      } else if (mode === "bio") {
-        title.textContent = "Edit your biography";
-        subtitle.textContent = "Let readers know a little about the person behind the stories.";
+      } else if (mode === "profile") {
+        title.textContent = "Edit your author profile";
+        subtitle.textContent = "Choose how readers see and contact you.";
         form.innerHTML = `
-          <div class="field"><label for="bioField">Your biography</label><textarea class="bio-input" id="bioField" name="bio" maxlength="1200" required>${escapeHtml(state.bio)}</textarea><span class="field-hint">A few warm paragraphs help readers get to know you.</span></div>
-          <div class="form-actions"><button class="button button-quiet" type="button" data-close>Cancel</button><button class="button button-primary" type="submit">Save biography</button></div>`;
+          <div class="field"><label for="authorNameField">Name shown on the website</label><input id="authorNameField" name="authorName" maxlength="80" value="${escapeHtml(state.authorName || "")}" required></div>
+          <div class="field"><label for="contactEmailField">Contact email</label><input id="contactEmailField" name="contactEmail" type="email" maxlength="254" value="${escapeHtml(state.contactEmail || "")}" placeholder="you@example.com"><span class="field-hint">Leave blank to hide the public email link.</span></div>
+          <div class="field"><label for="authorPhotoField">Author photo</label><input id="authorPhotoField" name="authorPhoto" type="file" accept="image/jpeg,image/png,image/webp"><span class="field-hint">${state.authorImage ? "Choose a new photo, or select Remove current photo below. JPEG, PNG or WebP, up to 5 MB." : "Choose a JPEG, PNG or WebP photo up to 5 MB."}</span>
+          ${state.authorImage ? '<label class="photo-remove"><input type="checkbox" name="removePhoto"> Remove current photo</label>' : ""}</div>
+          <div class="field"><label for="bioField">Your biography</label><textarea class="bio-input" id="bioField" name="bio" maxlength="1200" required>${escapeHtml(state.bio)}</textarea></div>
+          <div class="form-actions"><button class="button button-quiet" type="button" data-close>Cancel</button><button class="button button-primary" type="submit">Save profile</button></div>`;
       } else if (mode === "chapter") {
         if (!story) return;
         title.textContent = "Add a chapter";
@@ -515,8 +566,9 @@
     });
     document.getElementById("addPoem").addEventListener("click", () => openForm("poem"));
     document.getElementById("addStoryTop").addEventListener("click", () => openForm("story"));
-    document.getElementById("editBioTop").addEventListener("click", () => openForm("bio"));
-    document.getElementById("editBio").addEventListener("click", () => openForm("bio"));
+    document.getElementById("editBioTop").addEventListener("click", () => openForm("profile"));
+    document.getElementById("editBio").addEventListener("click", () => openForm("profile"));
+    document.getElementById("editContact").addEventListener("click", () => openForm("profile"));
     document.getElementById("logoutTop").addEventListener("click", async () => {
       try {
         await window.siteApi.request("/api/auth/logout", { method: "POST" });
@@ -543,10 +595,20 @@
       const submit = form.querySelector('[type="submit"]');
       submit.disabled = true;
       try {
-        if (mode === "bio") {
-          await window.siteApi.request("/api/bio", {
+        if (mode === "profile") {
+          let authorImage = state.authorImage || "";
+          if (data.get("removePhoto") === "on") authorImage = "";
+          else if (data.get("authorPhoto") instanceof File && data.get("authorPhoto").size) {
+            authorImage = await uploadImage(data.get("authorPhoto"), "/api/uploads/author-photo");
+          }
+          await window.siteApi.request("/api/author/profile", {
             method: "PUT",
-            body: { bio: String(data.get("bio")).trim() }
+            body: {
+              authorName: String(data.get("authorName")).trim(),
+              authorImage,
+              contactEmail: String(data.get("contactEmail")).trim(),
+              bio: String(data.get("bio")).trim()
+            }
           });
         } else if (mode === "poem") {
           const poemId = form.dataset.poemId;
@@ -587,7 +649,7 @@
               blurb: String(data.get("blurb")).trim(),
               genre: String(data.get("genre")).trim() || "A story",
               updated: "Newly written",
-              coverImage: await uploadCover(data.get("coverImage")),
+              coverImage: await uploadImage(data.get("coverImage"), "/api/uploads/story-cover"),
               chapters: [{
                 title: String(data.get("chapterTitle")).trim(),
                 body: String(data.get("chapterBody")).trim()
@@ -598,7 +660,7 @@
         await reloadContent();
         render();
         closeModals();
-        showToast(mode === "bio" ? "Biography updated." : mode === "poem" ? (form.dataset.poemId ? "Poem updated." : "Poem published.") : mode === "chapter" ? "Chapter added to your story." : "Your story has been added.");
+        showToast(mode === "profile" ? "Author profile updated." : mode === "poem" ? (form.dataset.poemId ? "Poem updated." : "Poem published.") : mode === "chapter" ? "Chapter added to your story." : "Your story has been added.");
       } catch (error) {
         showToast(error.message || "Could not save your changes.");
       } finally {

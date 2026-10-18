@@ -83,7 +83,7 @@
             <div class="cover-caption"><span>${escapeHtml(story.genre || "A story")}</span><strong>${escapeHtml(story.title)}</strong></div>
           </div>
           <div>
-            <div class="eyebrow">A story by Clara Bennett</div>
+            <div class="eyebrow">A story by ${escapeHtml(content.authorName || "the author")}</div>
             <h1>${escapeHtml(story.title)}</h1>
             <p class="story-meta">${escapeHtml(story.genre || "Story")} · ${story.chapters.length} chapters</p>
             <p class="short-description">${escapeHtml(story.description)}</p>

@@ -82,6 +82,70 @@ class WebsiteBackendTests(unittest.TestCase):
         self.assertEqual(content["poems"], [])
         self.assertEqual(content["stories"][0]["chapters"][0]["title"], "The road home")
         self.assertIn("I'm Clara", content["bio"])
+        self.assertEqual(content["authorName"], "Clara Bennett")
+        self.assertTrue(content["authorImage"].startswith("https://"))
+        self.assertEqual(content["contactEmail"], "")
+
+    def test_author_can_update_name_photo_contact_and_biography(self):
+        payload = {
+            "authorName": "New Author",
+            "authorImage": "",
+            "contactEmail": "author@example.com",
+            "bio": "I'm Clara, a writer.",
+        }
+        unauthorized = self.json_request("PUT", "/api/author/profile", payload, self.csrf_token())
+        self.assertEqual(unauthorized.status_code, 401)
+
+        token = self.sign_in()
+        invalid_email = self.json_request(
+            "PUT",
+            "/api/author/profile",
+            {**payload, "contactEmail": "not-an-email"},
+            token,
+        )
+        self.assertEqual(invalid_email.status_code, 400)
+        invalid_photo = self.json_request(
+            "PUT",
+            "/api/author/profile",
+            {**payload, "authorImage": "/uploads/not-a-real-image.png"},
+            token,
+        )
+        self.assertEqual(invalid_photo.status_code, 400)
+
+        png_bytes = base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/"
+            "lWQAAAAASUVORK5CYII="
+        )
+        uploaded = self.client.post(
+            "/api/uploads/author-photo",
+            data={"image": (io.BytesIO(png_bytes), "author.png")},
+            headers={"X-CSRFToken": token},
+        )
+        self.assertEqual(uploaded.status_code, 201)
+        author_image = uploaded.get_json()["url"]
+        updated = self.json_request(
+            "PUT",
+            "/api/author/profile",
+            {**payload, "authorImage": author_image},
+            token,
+        )
+        self.assertEqual(updated.status_code, 200)
+        self.assertEqual(updated.get_json()["authorName"], "New Author")
+        self.assertEqual(updated.get_json()["authorImage"], author_image)
+        public_content = self.client.get("/api/public").get_json()
+        self.assertEqual(public_content["authorName"], "New Author")
+        self.assertEqual(public_content["authorImage"], author_image)
+        self.assertEqual(public_content["contactEmail"], "author@example.com")
+        self.assertEqual(public_content["bio"], "I'm New, a writer.")
+
+        removed = self.json_request(
+            "PUT",
+            "/api/author/profile",
+            {**payload, "authorImage": ""},
+            token,
+        )
+        self.assertEqual(removed.status_code, 200)
+        self.assertEqual(self.client.get("/api/public").get_json()["authorImage"], "")
 
     def test_author_can_create_edit_and_delete_poems(self):
         token = self.csrf_token()
@@ -423,6 +487,9 @@ class WebsiteBackendTests(unittest.TestCase):
         page_response = self.client.get("/manage.html")
         self.assertEqual(page_response.status_code, 200)
         page_response.close()
+        poems_page = self.client.get("/poems.html")
+        self.assertEqual(poems_page.status_code, 200)
+        poems_page.close()
         self.assertEqual(self.client.get("/api/stories").status_code, 401)
         self.assertEqual(self.client.get("/api/public").status_code, 200)
 
