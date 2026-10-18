@@ -111,6 +111,7 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
     def public_content():
         return jsonify(
             stories=list_stories(),
+            poems=list_poems(),
             bio=get_bio(),
         )
 
@@ -302,6 +303,55 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
         database.commit()
         return jsonify(ok=True)
 
+    @app.post("/api/poems")
+    @author_required
+    def create_poem():
+        payload = json_payload()
+        title = valid_text(payload, "title", 100)
+        body = valid_text(payload, "body", 12000)
+        if title is None or body is None:
+            return (
+                jsonify(error="Poem title and text are required (up to 12,000 characters)."),
+                400,
+            )
+        database = get_database()
+        cursor = database.execute(
+            "INSERT INTO poems (title, body) VALUES (?, ?)", (title, body)
+        )
+        database.commit()
+        return jsonify(poem={"id": cursor.lastrowid, "title": title, "body": body}), 201
+
+    @app.put("/api/poems/<int:poem_id>")
+    @author_required
+    def update_poem(poem_id: int):
+        payload = json_payload()
+        title = valid_text(payload, "title", 100)
+        body = valid_text(payload, "body", 12000)
+        if title is None or body is None:
+            return (
+                jsonify(error="Poem title and text are required (up to 12,000 characters)."),
+                400,
+            )
+        database = get_database()
+        cursor = database.execute(
+            "UPDATE poems SET title = ?, body = ? WHERE id = ?",
+            (title, body, poem_id),
+        )
+        if cursor.rowcount == 0:
+            return jsonify(error="Poem not found."), 404
+        database.commit()
+        return jsonify(poem={"id": poem_id, "title": title, "body": body})
+
+    @app.delete("/api/poems/<int:poem_id>")
+    @author_required
+    def delete_poem(poem_id: int):
+        database = get_database()
+        cursor = database.execute("DELETE FROM poems WHERE id = ?", (poem_id,))
+        if cursor.rowcount == 0:
+            return jsonify(error="Poem not found."), 404
+        database.commit()
+        return jsonify(ok=True)
+
     @app.put("/api/bio")
     @author_required
     def update_bio():
@@ -461,6 +511,11 @@ def initialize_database(app: Flask) -> None:
             cover_image TEXT NOT NULL DEFAULT '',
             sort_order INTEGER NOT NULL DEFAULT 0
         );
+        CREATE TABLE IF NOT EXISTS poems (
+            id INTEGER PRIMARY KEY,
+            title TEXT NOT NULL,
+            body TEXT NOT NULL
+        );
         CREATE TABLE IF NOT EXISTS chapters (
             id INTEGER PRIMARY KEY,
             story_id TEXT NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
@@ -610,6 +665,16 @@ def list_stories() -> list[dict[str, Any]]:
                 {"title": row["chapter_title"], "body": row["chapter_body"]}
             )
     return stories
+
+
+def list_poems() -> list[dict[str, Any]]:
+    rows = get_database().execute(
+        "SELECT id, title, body FROM poems ORDER BY id DESC"
+    ).fetchall()
+    return [
+        {"id": row["id"], "title": row["title"], "body": row["body"]}
+        for row in rows
+    ]
 
 
 def get_bio() -> str:

@@ -79,8 +79,59 @@ class WebsiteBackendTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         content = response.get_json()
         self.assertEqual(len(content["stories"]), 3)
+        self.assertEqual(content["poems"], [])
         self.assertEqual(content["stories"][0]["chapters"][0]["title"], "The road home")
         self.assertIn("I'm Clara", content["bio"])
+
+    def test_author_can_create_edit_and_delete_poems(self):
+        token = self.csrf_token()
+        unauthenticated = self.json_request(
+            "POST",
+            "/api/poems",
+            {"title": "A small poem", "body": "A line"},
+            token,
+        )
+        self.assertEqual(unauthenticated.status_code, 401)
+
+        token = self.sign_in()
+        created = self.json_request(
+            "POST",
+            "/api/poems",
+            {"title": "  A small poem  ", "body": " First line\nSecond line "},
+            token,
+        )
+        self.assertEqual(created.status_code, 201)
+        poem = created.get_json()["poem"]
+        self.assertEqual(poem["title"], "A small poem")
+        self.assertEqual(poem["body"], "First line\nSecond line")
+        self.assertEqual(self.client.get("/api/public").get_json()["poems"], [poem])
+
+        updated = self.json_request(
+            "PUT",
+            f"/api/poems/{poem['id']}",
+            {"title": "Revised poem", "body": "Revised lines"},
+            token,
+        )
+        self.assertEqual(updated.status_code, 200)
+        self.assertEqual(updated.get_json()["poem"]["title"], "Revised poem")
+
+        invalid = self.json_request(
+            "PUT",
+            f"/api/poems/{poem['id']}",
+            {"title": "", "body": "Text"},
+            token,
+        )
+        self.assertEqual(invalid.status_code, 400)
+
+        deleted = self.json_request(
+            "DELETE", f"/api/poems/{poem['id']}", csrf_token=token
+        )
+        self.assertEqual(deleted.status_code, 200)
+        self.assertEqual(self.client.get("/api/public").get_json()["poems"], [])
+        missing = self.json_request(
+            "DELETE", f"/api/poems/{poem['id']}", csrf_token=token
+        )
+        self.assertEqual(missing.status_code, 404)
 
     def test_author_routes_require_login_and_csrf(self):
         self.assertEqual(self.client.get("/api/stories").status_code, 401)

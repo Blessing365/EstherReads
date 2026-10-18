@@ -141,6 +141,15 @@
     .story-tools { display: flex; align-items: center; gap: 10px; }
     .empty-state { grid-column: 1 / -1; padding: 38px 20px; text-align: center; border: 1px dashed #d9d5ca; border-radius: 7px; color: var(--muted); font-size: 13px; }
 
+    .poem-section { padding: 42px 0 48px; background: #edece3; }
+    .poem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+    .poem-card { padding: 20px 22px; border: 1px solid #e2dfd5; border-radius: 6px; background: var(--card); }
+    .poem-card h3 { margin: 0 0 12px; font: 500 20px var(--serif); }
+    .poem-body { margin: 0; color: #6f766d; font: 13px/1.9 var(--serif); white-space: pre-line; }
+    .poem-actions { display: flex; justify-content: end; gap: 12px; margin-top: 15px; }
+    .poem-actions button, .poem-actions a { border: 0; padding: 4px 0; background: none; color: var(--green-dark); font-size: 10px; font-weight: 700; }
+    .poem-actions button:hover, .poem-actions a:hover { color: #9c745e; }
+
     .author-section { padding: 60px 0; background: #edece3; }
     .author-grid { display: grid; grid-template-columns: 260px 1fr; align-items: center; gap: 68px; }
     .author-photo {
@@ -203,6 +212,7 @@
       .story-info { padding: 14px; }
       .story-info h3 { font-size: 19px; }
       .story-info p { min-height: 0; }
+      .poem-grid { grid-template-columns: 1fr; }
       .author-section { padding: 43px 0; }
       .author-grid { grid-template-columns: 1fr; gap: 25px; }
       .author-photo { height: 260px; width: min(100%, 310px); }
@@ -234,7 +244,8 @@
       <nav class="nav" aria-label="Main navigation">
         <a href="#stories">Stories</a>
         <a id="manageLink" href="manage.html" hidden>Manage stories</a>
-        <a id="loginLink" href="login.html?next=index.html">Author sign in</a>
+        <a id="loginLink" href="login.html?next=index.html" hidden>Author sign in</a>
+        <a href="#poems">Poems</a>
         <a href="#about">About Clara</a>
         <a href="#footer">Get in touch</a>
       </nav>
@@ -291,6 +302,20 @@
       </div>
     </section>
 
+    <section class="poem-section" id="poems">
+      <div class="wrap">
+        <div class="section-heading">
+          <div>
+            <div class="eyebrow">A little something on the side</div>
+            <h2>Poems</h2>
+            <p>Short pieces to pause with between stories.</p>
+          </div>
+          <button class="button button-quiet button-small" id="addPoem" type="button" hidden>Add a poem</button>
+        </div>
+        <div class="poem-grid" id="poemGrid" aria-live="polite"></div>
+      </div>
+    </section>
+
     <section class="author-section" id="about">
       <div class="wrap author-grid">
         <div class="author-photo" role="img" aria-label="Portrait of author Clara Bennett"></div>
@@ -310,7 +335,8 @@
   <footer class="footer" id="footer">
     <div class="wrap footer-inner">
       <span>© <span id="year"></span> Clara Bennett · Written slowly, shared gladly.</span>
-      <span id="footerLoginWrap"><a id="footerLogin" href="login.html">Author sign in</a> · Made for stories worth staying up for.</span>
+      <span>Made for stories worth staying up for.</span>
+      <span id="footerLoginWrap" hidden><a id="footerLogin" href="login.html">Author sign in</a> · Made for stories worth staying up for.</span>
       <span id="footerAuthorWrap" hidden><a id="footerAuthor" href="manage.html">Manage stories</a> · Made for stories worth staying up for.</span>
     </div>
   </footer>
@@ -329,7 +355,7 @@
 
   <script src="api.js"></script>
   <script>
-    let state = { stories: [], bio: "" };
+    let state = { stories: [], poems: [], bio: "" };
     let isAuthor = false;
     let isSignedIn = false;
     function escapeHtml(value) {
@@ -357,44 +383,60 @@
     }
     function render() {
       document.getElementById("authorBio").textContent = state.bio;
-      document.querySelectorAll("#addStoryTop, #editBioTop, #editBio, #manageLink, #manageCollectionLink, #footerAuthorWrap").forEach(element => {
+      document.querySelectorAll("#addStoryTop, #editBioTop, #editBio, #manageLink, #manageCollectionLink, #addPoem, #footerAuthorWrap").forEach(element => {
         element.hidden = !isAuthor;
       });
       document.getElementById("logoutTop").hidden = !isSignedIn;
-      document.getElementById("loginLink").hidden = isSignedIn;
-      document.getElementById("loginLink").href = "login.html?next=index.html";
-      document.getElementById("footerLoginWrap").hidden = isSignedIn;
       const grid = document.getElementById("storyGrid");
       if (!state.stories.length) {
         grid.innerHTML = '<div class="empty-state">No stories yet. Add the first one and start a new chapter.</div>';
-        return;
-      }
-      grid.innerHTML = state.stories.map((story, index) => `
-        <article class="story-card">
-          <a class="story-cover ${story.coverImage ? "" : escapeHtml(story.cover || `cover-${["one", "two", "three"][index % 3]}`)}" href="detail.html?story=${encodeURIComponent(story.id)}" aria-label="Explore ${escapeHtml(story.title)}">
-            ${story.coverImage ? `<img class="story-cover-image" src="${escapeHtml(story.coverImage)}" alt="">` : ""}
-            <span class="cover-chip">${escapeHtml(story.genre || "A story")}</span>
-          </a>
-          <div class="story-info">
-            <div class="story-meta"><span>${escapeHtml(story.genre || "Story")}</span><span class="dot"></span><span>${story.chapters.length} chapters</span></div>
-            <h3><a href="detail.html?story=${encodeURIComponent(story.id)}">${escapeHtml(story.title)}</a></h3>
-            <p>${escapeHtml(story.description || "")}</p>
-            <div class="story-footer">
-              <span>${escapeHtml(story.updated || "A story in chapters")}</span>
-              <div class="story-tools">
-                ${isAuthor ? `<button type="button" data-action="add-chapter" data-id="${escapeHtml(story.id)}" aria-label="Add chapter to ${escapeHtml(story.title)}">+ Chapter</button>` : ""}
-                <a class="story-detail-link" href="detail.html?story=${encodeURIComponent(story.id)}">Explore story <span aria-hidden="true">→</span></a>
+      } else {
+        grid.innerHTML = state.stories.map((story, index) => `
+          <article class="story-card">
+            <a class="story-cover ${story.coverImage ? "" : escapeHtml(story.cover || `cover-${["one", "two", "three"][index % 3]}`)}" href="detail.html?story=${encodeURIComponent(story.id)}" aria-label="Explore ${escapeHtml(story.title)}">
+              ${story.coverImage ? `<img class="story-cover-image" src="${escapeHtml(story.coverImage)}" alt="">` : ""}
+              <span class="cover-chip">${escapeHtml(story.genre || "A story")}</span>
+            </a>
+            <div class="story-info">
+              <div class="story-meta"><span>${escapeHtml(story.genre || "Story")}</span><span class="dot"></span><span>${story.chapters.length} chapters</span></div>
+              <h3><a href="detail.html?story=${encodeURIComponent(story.id)}">${escapeHtml(story.title)}</a></h3>
+              <p>${escapeHtml(story.description || "")}</p>
+              <div class="story-footer">
+                <span>${escapeHtml(story.updated || "A story in chapters")}</span>
+                <div class="story-tools">
+                  ${isAuthor ? `<button type="button" data-action="add-chapter" data-id="${escapeHtml(story.id)}" aria-label="Add chapter to ${escapeHtml(story.title)}">+ Chapter</button>` : ""}
+                  <a class="story-detail-link" href="detail.html?story=${encodeURIComponent(story.id)}">Explore story <span aria-hidden="true">→</span></a>
+                </div>
               </div>
             </div>
-          </div>
-        </article>`).join("");
+          </article>`).join("");
+      }
+      const poemGrid = document.getElementById("poemGrid");
+      if (!state.poems.length) {
+        poemGrid.innerHTML = '<div class="empty-state">No poems yet. Short pieces can find a home here.</div>';
+      } else {
+        poemGrid.innerHTML = state.poems.map(poem => `
+          <article class="poem-card">
+            <h3>${escapeHtml(poem.title)}</h3>
+            <p class="poem-body">${escapeHtml(poem.body)}</p>
+            ${isAuthor ? `<div class="poem-actions"><button type="button" data-action="edit-poem" data-id="${poem.id}">Edit</button><button type="button" data-action="delete-poem" data-id="${poem.id}">Delete</button></div>` : ""}
+          </article>`).join("");
+      }
     }
-    function openForm(mode, storyId) {
+    function openForm(mode, storyId, poemId) {
       const form = document.getElementById("authorForm");
       const title = document.getElementById("formTitle");
       const subtitle = document.getElementById("formSubtitle");
       const story = state.stories.find(item => item.id === storyId);
-      if (mode === "bio") {
+      const poem = state.poems.find(item => item.id === Number(poemId));
+      if (mode === "poem") {
+        title.textContent = poem ? "Edit poem" : "Add a poem";
+        subtitle.textContent = "Give this short piece a title and its words.";
+        form.innerHTML = `
+          <div class="field"><label for="poemTitle">Poem title</label><input id="poemTitle" name="poemTitle" maxlength="100" value="${escapeHtml(poem?.title || "")}" required></div>
+          <div class="field"><label for="poemBody">Poem text</label><textarea id="poemBody" name="poemBody" maxlength="12000" required>${escapeHtml(poem?.body || "")}</textarea><span class="field-hint">Up to 12,000 characters. Line breaks are preserved.</span></div>
+          <div class="form-actions"><button class="button button-quiet" type="button" data-close>Cancel</button><button class="button button-primary" type="submit">${poem ? "Save poem" : "Publish poem"}</button></div>`;
+      } else if (mode === "bio") {
         title.textContent = "Edit your biography";
         subtitle.textContent = "Let readers know a little about the person behind the stories.";
         form.innerHTML = `
@@ -425,6 +467,7 @@
       }
       form.dataset.mode = mode;
       form.dataset.storyId = storyId || "";
+      form.dataset.poemId = poem?.id || "";
       document.getElementById("formBackdrop").classList.add("open");
       form.querySelector("input, textarea")?.focus();
     }
@@ -453,6 +496,23 @@
       }
       if (button.dataset.action === "add-chapter") openForm("chapter", button.dataset.id);
     });
+    document.getElementById("poemGrid").addEventListener("click", async event => {
+      const button = event.target.closest("button[data-action]");
+      if (!button || !isAuthor) return;
+      const poemId = Number(button.dataset.id);
+      if (button.dataset.action === "edit-poem") {
+        openForm("poem", undefined, poemId);
+      } else if (button.dataset.action === "delete-poem" && window.confirm("Delete this poem?")) {
+        try {
+          await window.siteApi.request(`/api/poems/${poemId}`, { method: "DELETE" });
+          await reloadContent();
+          showToast("Poem deleted.");
+        } catch (error) {
+          showToast(error.message || "Could not delete the poem.");
+        }
+      }
+    });
+    document.getElementById("addPoem").addEventListener("click", () => openForm("poem"));
     document.getElementById("addStoryTop").addEventListener("click", () => openForm("story"));
     document.getElementById("editBioTop").addEventListener("click", () => openForm("bio"));
     document.getElementById("editBio").addEventListener("click", () => openForm("bio"));
@@ -487,6 +547,18 @@
             method: "PUT",
             body: { bio: String(data.get("bio")).trim() }
           });
+        } else if (mode === "poem") {
+          const poemId = form.dataset.poemId;
+          await window.siteApi.request(
+            poemId ? `/api/poems/${poemId}` : "/api/poems",
+            {
+              method: poemId ? "PUT" : "POST",
+              body: {
+                title: String(data.get("poemTitle")).trim(),
+                body: String(data.get("poemBody")).trim()
+              }
+            }
+          );
         } else if (mode === "chapter") {
           const story = state.stories.find(item => item.id === form.dataset.storyId);
           if (!story) throw new Error("That story could not be found.");
@@ -525,7 +597,7 @@
         await reloadContent();
         render();
         closeModals();
-        showToast(mode === "bio" ? "Biography updated." : mode === "chapter" ? "Chapter added to your story." : "Your story has been added.");
+        showToast(mode === "bio" ? "Biography updated." : mode === "poem" ? (form.dataset.poemId ? "Poem updated." : "Poem published.") : mode === "chapter" ? "Chapter added to your story." : "Your story has been added.");
       } catch (error) {
         showToast(error.message || "Could not save your changes.");
       } finally {

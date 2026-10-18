@@ -26,6 +26,8 @@ Create additional author accounts with `python app.py create-author another@exam
 
 Each story has its own page with its cover image, blurb, and chapter list. Signed-in readers can leave one review per story and comments on chapters. Feedback is private until an author approves it from **Manage stories**; approved reviews then appear on the story page and comments at the end of their chapter. Authors can edit a story's blurb and upload a JPEG, PNG, or WebP cover image (up to 5 MB). Images are stored in `instance/uploads`; set `UPLOAD_FOLDER` to use another directory.
 
+Authors can also publish, edit, and delete standalone poems from the homepage. The public author sign-in link is hidden; author accounts can still sign in directly at `login.html`.
+
 ## Tests
 
 ```powershell
