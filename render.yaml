@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: estherreads
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: waitress-serve --listen=0.0.0.0:$PORT app:app
+    healthCheckPath: /api/auth/session
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: DATABASE_PATH
+        value: /var/data/stories.sqlite3
+      - key: UPLOAD_FOLDER
+        value: /var/data/uploads
+    disk:
+      name: estherreads-data
+      mountPath: /var/data
+      sizeGB: 1
