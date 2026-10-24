@@ -111,6 +111,10 @@
       .form-actions { flex-wrap: wrap; }
     }
   </style>
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="story-editor.css">
+  <script src="theme.js"></script>
+  <script src="story-editor.js"></script>
 </head>
 <body>
   <header class="topbar">
@@ -253,9 +257,12 @@
           </div>
           <div class="field chapter-body-field">
             <label for="chapterBody${index}">Chapter text</label>
-            <textarea class="chapter-body" id="chapterBody${index}" name="chapterBody" maxlength="12000" required>${escapeHtml(chapter.body)}</textarea>
+            <div class="rich-text-toolbar" data-editor-toolbar aria-label="Text formatting"><button type="button" data-command="bold" aria-label="Bold" title="Bold"><strong>B</strong></button><button type="button" data-command="italic" aria-label="Italic" title="Italic"><em>I</em></button></div>
+            <div class="rich-text-content" id="chapterBody${index}" data-rich-text-editor contenteditable="true" role="textbox" aria-multiline="true" aria-label="Chapter ${index + 1} text" data-placeholder="Write or paste your chapter here...">${chapter.body}</div>
+            <span class="rich-text-hint">Paste from Word or Google Docs to keep bold and italic formatting. Up to 12,000 characters.</span>
           </div>
         </div>`).join("");
+      window.storyEditor.initialize(chapterList);
       updateChapterLabels();
     }
     function updateChapterLabels() {
@@ -360,9 +367,12 @@
         </div>
         <div class="field chapter-body-field">
           <label for="${bodyId}">Chapter text</label>
-          <textarea class="chapter-body" id="${bodyId}" name="chapterBody" maxlength="12000" required></textarea>
+          <div class="rich-text-toolbar" data-editor-toolbar aria-label="Text formatting"><button type="button" data-command="bold" aria-label="Bold" title="Bold"><strong>B</strong></button><button type="button" data-command="italic" aria-label="Italic" title="Italic"><em>I</em></button></div>
+          <div class="rich-text-content" id="${bodyId}" data-rich-text-editor contenteditable="true" role="textbox" aria-multiline="true" aria-label="Chapter text" data-placeholder="Write or paste your chapter here..."></div>
+          <span class="rich-text-hint">Paste from Word or Google Docs to keep bold and italic formatting. Up to 12,000 characters.</span>
         </div>`;
       chapterList.append(chapterElement);
+      window.storyEditor.initialize(chapterElement);
       updateChapterLabels();
       chapterElement.querySelector('input[name="chapterTitle"]').focus();
     });
@@ -398,7 +408,7 @@
       const formData = new FormData(storyForm);
       const chapters = [...chapterList.querySelectorAll("[data-chapter]")].map(chapter => ({
         title: chapter.querySelector('[name="chapterTitle"]').value.trim(),
-        body: chapter.querySelector('[name="chapterBody"]').value.trim()
+        body: window.storyEditor.value(chapter.querySelector("[data-rich-text-editor]"))
       }));
       if (!chapters.length) {
         status.textContent = "A story must have at least one chapter.";

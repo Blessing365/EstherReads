@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+from html import escape, unescape
+from html.parser import HTMLParser
 import getpass
 import json
 import os
@@ -38,7 +40,14 @@ STATIC_FILES = {
     "detail.html",
     "register.html",
     "poems.html",
+    "stories.html",
     "api.js",
+    "theme.css",
+    "theme.js",
+    "story-editor.js",
+    "story-editor.css",
+    "story-editor.js",
+    "story-editor.css",
 }
 csrf = CSRFProtect()
 
@@ -117,6 +126,10 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
             authorName=get_setting("author_name"),
             authorImage=get_setting("author_image"),
             contactEmail=get_setting("contact_email"),
+            homepageEyebrow=get_setting("homepage_eyebrow"),
+            homepageTitle=get_setting("homepage_title"),
+            homepageCopy=get_setting("homepage_copy"),
+            homepageNote=get_setting("homepage_note"),
         )
 
     @app.get("/uploads/<path:filename>")
@@ -380,6 +393,23 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
         author_image = payload.get("authorImage")
         contact_email = payload.get("contactEmail")
         bio = payload.get("bio")
+        homepage_fields = {
+            "homepageEyebrow": ("homepage_eyebrow", 100),
+            "homepageTitle": ("homepage_title", 160),
+            "homepageCopy": ("homepage_copy", 500),
+            "homepageNote": ("homepage_note", 120),
+        }
+        homepage_values: dict[str, str] = {}
+        for field, (setting, maximum) in homepage_fields.items():
+            if field not in payload:
+                continue
+            value = valid_text(payload, field, maximum)
+            if value is None:
+                return (
+                    jsonify(error=f"{field} must be between 1 and {maximum} characters."),
+                    400,
+                )
+            homepage_values[setting] = value
         if author_name is None:
             return jsonify(error="Author name must be between 1 and 80 characters."), 400
         if not isinstance(author_image, str) or (
@@ -401,6 +431,7 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
             ("author_image", author_image),
             ("contact_email", contact_email.strip().lower()),
             ("bio", bio),
+            *homepage_values.items(),
         ):
             database.execute(
                 "INSERT INTO settings (key, value) VALUES (?, ?) "
@@ -657,6 +688,13 @@ def initialize_database(app: Flask) -> None:
             "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=700&q=85",
         ),
         ("contact_email", ""),
+        ("homepage_eyebrow", "A little corner for the curious"),
+        ("homepage_title", "Stories for the in-between moments."),
+        (
+            "homepage_copy",
+            "Quiet adventures, tender beginnings, and the small moments that stay with us. Come in, find a story, and make yourself at home.",
+        ),
+        ("homepage_note", "A growing collection, written with care"),
     ):
         connection.execute(
             "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)",
@@ -729,8 +767,30 @@ def list_stories() -> list[dict[str, Any]]:
             stories.append(story)
         if row["position"] is not None:
             story["chapters"].append(
-                {"title": row["chapter_title"], "body": row["chapter_body"]}
+                {
+                    "title": row["chapter_title"],
+                    "body": sanitize_chapter_body(row["chapter_body"]),
+                }
             )
+    ratings = database.execute(
+        """SELECT story_id, COUNT(*) AS rating_count, AVG(rating) AS average_rating
+           FROM feedback
+           WHERE kind = 'review' AND status = 'approved'
+           GROUP BY story_id"""
+    ).fetchall()
+    rating_summary = {
+        row["story_id"]: {
+            "ratingCount": row["rating_count"],
+            "averageRating": round(row["average_rating"], 1),
+        }
+        for row in ratings
+    }
+    for story in stories:
+        story.update(
+            rating_summary.get(
+                story["id"], {"ratingCount": 0, "averageRating": None}
+            )
+        )
     return stories
 
 
@@ -897,6 +957,73 @@ def valid_text(payload: dict[str, Any], field: str, maximum: int) -> str | None:
     return value
 
 
+class ChapterBodySanitizer(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.parts: list[str] = []
+        self.open_tags: list[tuple[str, list[str]]] = []
+        self.suppressed_depth = 0
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if self.suppressed_depth:
+            if tag in {"script", "style"}:
+                self.suppressed_depth += 1
+            return
+        if tag in {"script", "style"}:
+            self.suppressed_depth = 1
+            return
+        if tag == "br":
+            self.parts.append("<br>")
+            return
+        if tag in {"b", "strong", "i", "em", "p", "div"}:
+            self.parts.append(f"<{tag}>")
+            self.open_tags.append((tag, [tag]))
+            return
+        if tag == "span":
+            styles = dict(attrs).get("style") or ""
+            strong = bool(
+                re.search(
+                    r"(?:font-weight\s*:\s*(?:bold|[6-9]00)|\b(?:bold|bolder)\b)",
+                    styles,
+                    re.I,
+                )
+            )
+            italic = bool(re.search(r"font-style\s*:\s*italic", styles, re.I))
+            generated = (["strong"] if strong else []) + (["em"] if italic else [])
+            self.parts.extend(f"<{name}>" for name in generated)
+            self.open_tags.append((tag, generated))
+
+    def handle_endtag(self, tag: str) -> None:
+        if self.suppressed_depth:
+            if tag in {"script", "style"}:
+                self.suppressed_depth -= 1
+            return
+        for index in range(len(self.open_tags) - 1, -1, -1):
+            source_tag, _ = self.open_tags[index]
+            if source_tag == tag:
+                while len(self.open_tags) > index:
+                    _, generated = self.open_tags.pop()
+                    self.parts.extend(f"</{name}>" for name in reversed(generated))
+                return
+
+    def handle_data(self, data: str) -> None:
+        if not self.suppressed_depth:
+            self.parts.append(escape(data, quote=False))
+
+    def finish(self) -> str:
+        while self.open_tags:
+            _, generated = self.open_tags.pop()
+            self.parts.extend(f"</{name}>" for name in reversed(generated))
+        return "".join(self.parts).strip()
+
+
+def sanitize_chapter_body(value: str) -> str:
+    parser = ChapterBodySanitizer()
+    parser.feed(value)
+    parser.close()
+    return parser.finish()
+
+
 def validate_story(payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None]:
     title = valid_text(payload, "title", 90)
     description = valid_text(payload, "description", 220)
@@ -922,8 +1049,12 @@ def validate_story(payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str 
         if not isinstance(chapter, dict):
             return None, f"Chapter {index} is invalid."
         chapter_title = valid_text(chapter, "title", 90)
-        chapter_body = valid_text(chapter, "body", 12000)
-        if chapter_title is None or chapter_body is None:
+        raw_body = chapter.get("body")
+        if not isinstance(raw_body, str) or len(raw_body) > 60000:
+            return None, f"Chapter {index} needs a title and text (up to 12,000 characters)."
+        chapter_body = sanitize_chapter_body(raw_body)
+        plain_body = unescape(re.sub(r"<[^>]*>", "", chapter_body))
+        if chapter_title is None or not plain_body.strip() or len(plain_body) > 12000:
             return None, f"Chapter {index} needs a title and text (up to 12,000 characters)."
         validated_chapters.append({"title": chapter_title, "body": chapter_body})
 

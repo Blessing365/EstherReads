@@ -115,6 +115,7 @@
     .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 24px; }
     .section-heading h2 { margin: 8px 0 0; font: 500 32px var(--serif); letter-spacing: -.5px; }
     .section-heading p { margin: 8px 0 0; color: var(--muted); font-size: 12px; }
+    .story-section-links { display: flex; align-items: center; gap: 18px; }
     .story-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
     .story-card {
       overflow: hidden; border: 1px solid #ebe7df; border-radius: 7px; background: var(--card);
@@ -214,6 +215,7 @@
       .section { padding: 43px 0; }
       .section-heading { align-items: start; }
       .section-heading h2 { font-size: 28px; }
+      .story-section-links { align-items: end; flex-direction: column; gap: 10px; }
       .story-grid { grid-template-columns: 1fr; gap: 14px; }
       .story-card { display: grid; grid-template-columns: 36% 1fr; }
       .story-cover { height: 100%; min-height: 200px; }
@@ -242,6 +244,10 @@
       .modal-header, .form { padding-left: 18px; padding-right: 18px; }
     }
   </style>
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="story-editor.css">
+  <script src="theme.js"></script>
+  <script src="story-editor.js"></script>
 </head>
 <body>
   <header class="topbar">
@@ -273,16 +279,16 @@
     <section class="hero">
       <div class="wrap hero-grid">
         <div>
-          <div class="eyebrow">A little corner for the curious</div>
-          <h1>Stories for the<br><em>in-between</em> moments.</h1>
-          <p class="hero-copy">Quiet adventures, tender beginnings, and the small moments that stay with us. Come in, find a story, and make yourself at home.</p>
+          <div class="eyebrow" id="homepageEyebrow">A little corner for the curious</div>
+          <h1 id="homepageTitle">Stories for the<br><em>in-between</em> moments.</h1>
+          <p class="hero-copy" id="homepageCopy">Quiet adventures, tender beginnings, and the small moments that stay with us. Come in, find a story, and make yourself at home.</p>
           <div class="hero-buttons">
             <a class="button button-primary" href="#stories">Find your next read <span aria-hidden="true">↗</span></a>
             <a class="text-link" href="#about">Meet the author <span aria-hidden="true">→</span></a>
           </div>
           <div class="hero-note">
             <div class="avatar-stack" aria-hidden="true"><span>J</span><span>M</span><span>A</span></div>
-            <span>A growing collection, written with care</span>
+            <span id="homepageNote">A growing collection, written with care</span>
           </div>
         </div>
         <div class="hero-art" aria-label="Featured story cover, The Place We Return To">
@@ -305,7 +311,10 @@
             <h2>Stories to settle into</h2>
             <p>Each one unfolds a chapter at a time.</p>
           </div>
-          <a class="text-link" href="manage.html" id="manageCollectionLink" hidden>Manage stories <span aria-hidden="true">→</span></a>
+          <div class="story-section-links">
+            <a class="text-link" href="stories.html">Browse all stories <span aria-hidden="true">→</span></a>
+            <a class="text-link" href="manage.html" id="manageCollectionLink" hidden>Manage stories <span aria-hidden="true">→</span></a>
+          </div>
         </div>
         <div class="story-grid" id="storyGrid" aria-live="polite"></div>
       </div>
@@ -319,7 +328,7 @@
             <h2>Poems</h2>
             <p>Short pieces to pause with between stories.</p>
           </div>
-          <a class="poem-more" href="poems.html">Browse all poems <span aria-hidden="true">→</span></a>
+          <a class="poem-more" href="poems.html">More poems <span aria-hidden="true">→</span></a>
           <button class="button button-quiet button-small" id="addPoem" type="button" hidden>Add a poem</button>
         </div>
         <div class="poem-grid" id="poemGrid" aria-live="polite"></div>
@@ -375,7 +384,7 @@
 
   <script src="api.js"></script>
   <script>
-    let state = { stories: [], poems: [], bio: "", authorName: "Clara Bennett", authorImage: "", contactEmail: "" };
+    let state = { stories: [], poems: [], bio: "", authorName: "Clara Bennett", authorImage: "", contactEmail: "", homepageEyebrow: "", homepageTitle: "", homepageCopy: "", homepageNote: "" };
     let isAuthor = false;
     let isSignedIn = false;
     function escapeHtml(value) {
@@ -403,6 +412,10 @@
     }
     function render() {
       document.getElementById("authorBio").textContent = state.bio;
+      document.getElementById("homepageEyebrow").textContent = state.homepageEyebrow;
+      document.getElementById("homepageTitle").textContent = state.homepageTitle;
+      document.getElementById("homepageCopy").textContent = state.homepageCopy;
+      document.getElementById("homepageNote").textContent = state.homepageNote;
       const authorName = state.authorName || "Author";
       const firstName = authorName.trim().split(/\s+/)[0];
       document.title = `Between the Lines — Stories by ${authorName}`;
@@ -439,7 +452,13 @@
       if (!state.stories.length) {
         grid.innerHTML = '<div class="empty-state">No stories yet. Add the first one and start a new chapter.</div>';
       } else {
-        grid.innerHTML = state.stories.map((story, index) => `
+        const featuredStories = state.stories
+          .map((story, index) => ({ story, index }))
+          .sort((first, second) =>
+            (second.story.ratingCount || 0) - (first.story.ratingCount || 0) || first.index - second.index
+          )
+          .slice(0, 6);
+        grid.innerHTML = featuredStories.map(({ story, index }) => `
           <article class="story-card">
             <a class="story-cover ${story.coverImage ? "" : escapeHtml(story.cover || `cover-${["one", "two", "three"][index % 3]}`)}" href="detail.html?story=${encodeURIComponent(story.id)}" aria-label="Explore ${escapeHtml(story.title)}">
               ${story.coverImage ? `<img class="story-cover-image" src="${escapeHtml(story.coverImage)}" alt="">` : ""}
@@ -450,7 +469,7 @@
               <h3><a href="detail.html?story=${encodeURIComponent(story.id)}">${escapeHtml(story.title)}</a></h3>
               <p>${escapeHtml(story.description || "")}</p>
               <div class="story-footer">
-                <span>${escapeHtml(story.updated || "A story in chapters")}</span>
+                <span>${story.ratingCount ? `★ ${escapeHtml(story.averageRating)} · ${story.ratingCount} ${story.ratingCount === 1 ? "rating" : "ratings"}` : escapeHtml(story.updated || "A story in chapters")}</span>
                 <div class="story-tools">
                   ${isAuthor ? `<button type="button" data-action="add-chapter" data-id="${escapeHtml(story.id)}" aria-label="Add chapter to ${escapeHtml(story.title)}">+ Chapter</button>` : ""}
                   <a class="story-detail-link" href="detail.html?story=${encodeURIComponent(story.id)}">Explore story <span aria-hidden="true">→</span></a>
@@ -463,10 +482,9 @@
       if (!state.poems.length) {
         poemGrid.innerHTML = '<div class="empty-state">No poems yet. Short pieces can find a home here.</div>';
       } else {
-        poemGrid.innerHTML = state.poems.map(poem => `
+        poemGrid.innerHTML = state.poems.slice(0, 3).map(poem => `
           <article class="poem-card">
             <h3>${escapeHtml(poem.title)}</h3>
-            <p class="poem-body">${escapeHtml(poem.body)}</p>
             ${isAuthor ? `<div class="poem-actions"><button type="button" data-action="edit-poem" data-id="${poem.id}">Edit</button><button type="button" data-action="delete-poem" data-id="${poem.id}">Delete</button></div>` : ""}
           </article>`).join("");
       }
@@ -489,6 +507,10 @@
         subtitle.textContent = "Choose how readers see and contact you.";
         form.innerHTML = `
           <div class="field"><label for="authorNameField">Name shown on the website</label><input id="authorNameField" name="authorName" maxlength="80" value="${escapeHtml(state.authorName || "")}" required></div>
+          <div class="field"><label for="homepageEyebrowField">Homepage small heading</label><input id="homepageEyebrowField" name="homepageEyebrow" maxlength="100" value="${escapeHtml(state.homepageEyebrow || "")}" required></div>
+          <div class="field"><label for="homepageTitleField">Homepage headline</label><input id="homepageTitleField" name="homepageTitle" maxlength="160" value="${escapeHtml(state.homepageTitle || "")}" required></div>
+          <div class="field"><label for="homepageCopyField">Homepage introduction</label><textarea id="homepageCopyField" name="homepageCopy" maxlength="500" required>${escapeHtml(state.homepageCopy || "")}</textarea></div>
+          <div class="field"><label for="homepageNoteField">Homepage note</label><input id="homepageNoteField" name="homepageNote" maxlength="120" value="${escapeHtml(state.homepageNote || "")}" required></div>
           <div class="field"><label for="contactEmailField">Contact email</label><input id="contactEmailField" name="contactEmail" type="email" maxlength="254" value="${escapeHtml(state.contactEmail || "")}" placeholder="you@example.com"><span class="field-hint">Leave blank to hide the public email link.</span></div>
           <div class="field"><label for="authorPhotoField">Author photo</label><input id="authorPhotoField" name="authorPhoto" type="file" accept="image/jpeg,image/png,image/webp"><span class="field-hint">${state.authorImage ? "Choose a new photo, or select Remove current photo below. JPEG, PNG or WebP, up to 5 MB." : "Choose a JPEG, PNG or WebP photo up to 5 MB."}</span>
           ${state.authorImage ? '<label class="photo-remove"><input type="checkbox" name="removePhoto"> Remove current photo</label>' : ""}</div>
@@ -500,7 +522,7 @@
         subtitle.textContent = `Continue “${story.title}” with a new chapter.`;
         form.innerHTML = `
           <div class="field"><label for="chapterTitle">Chapter title</label><input id="chapterTitle" name="chapterTitle" maxlength="90" placeholder="e.g. The morning after" required></div>
-          <div class="field"><label for="chapterBody">Chapter text</label><textarea id="chapterBody" name="chapterBody" maxlength="12000" placeholder="Write your chapter here..." required></textarea><span class="field-hint">You can add up to 12,000 characters per chapter.</span></div>
+          <div class="field"><label for="chapterBody">Chapter text</label><div class="rich-text-toolbar" data-editor-toolbar aria-label="Text formatting"><button type="button" data-command="bold" aria-label="Bold" title="Bold"><strong>B</strong></button><button type="button" data-command="italic" aria-label="Italic" title="Italic"><em>I</em></button></div><div class="rich-text-content" id="chapterBody" data-rich-text-editor contenteditable="true" role="textbox" aria-multiline="true" aria-label="Chapter text" data-placeholder="Write or paste your chapter here..."></div><span class="rich-text-hint">Use Ctrl+B / Ctrl+I or the buttons to format. Paste from Word or Google Docs to keep bold and italic text. Up to 12,000 characters.</span></div>
           <div class="form-actions"><button class="button button-quiet" type="button" data-close>Cancel</button><button class="button button-primary" type="submit">Add chapter</button></div>`;
       } else {
         title.textContent = "Add a new story";
@@ -514,14 +536,15 @@
             <div class="field"><label for="storyGenre">Genre</label><input id="storyGenre" name="genre" maxlength="40" placeholder="Literary fiction"></div>
             <div class="field"><label for="firstChapter">First chapter title</label><input id="firstChapter" name="chapterTitle" maxlength="90" placeholder="Chapter one" required></div>
           </div>
-          <div class="field"><label for="firstChapterBody">First chapter text</label><textarea id="firstChapterBody" name="chapterBody" maxlength="12000" placeholder="Begin your story..." required></textarea><span class="field-hint">You can add more chapters any time.</span></div>
+          <div class="field"><label for="firstChapterBody">First chapter text</label><div class="rich-text-toolbar" data-editor-toolbar aria-label="Text formatting"><button type="button" data-command="bold" aria-label="Bold" title="Bold"><strong>B</strong></button><button type="button" data-command="italic" aria-label="Italic" title="Italic"><em>I</em></button></div><div class="rich-text-content" id="firstChapterBody" data-rich-text-editor contenteditable="true" role="textbox" aria-multiline="true" aria-label="First chapter text" data-placeholder="Write or paste your chapter here..."></div><span class="rich-text-hint">Paste from Word or Google Docs; bold and italic formatting is kept. Up to 12,000 characters.</span></div>
           <div class="form-actions"><button class="button button-quiet" type="button" data-close>Cancel</button><button class="button button-primary" type="submit">Publish story</button></div>`;
       }
       form.dataset.mode = mode;
       form.dataset.storyId = storyId || "";
       form.dataset.poemId = poem?.id || "";
+      window.storyEditor.initialize(form);
       document.getElementById("formBackdrop").classList.add("open");
-      form.querySelector("input, textarea")?.focus();
+      form.querySelector("input, textarea, [contenteditable='true']")?.focus();
     }
     function closeModals() {
       document.querySelectorAll(".modal-backdrop").forEach(backdrop => backdrop.classList.remove("open"));
@@ -607,7 +630,11 @@
               authorName: String(data.get("authorName")).trim(),
               authorImage,
               contactEmail: String(data.get("contactEmail")).trim(),
-              bio: String(data.get("bio")).trim()
+              bio: String(data.get("bio")).trim(),
+              homepageEyebrow: String(data.get("homepageEyebrow")).trim(),
+              homepageTitle: String(data.get("homepageTitle")).trim(),
+              homepageCopy: String(data.get("homepageCopy")).trim(),
+              homepageNote: String(data.get("homepageNote")).trim()
             }
           });
         } else if (mode === "poem") {
@@ -636,7 +663,7 @@
               updated: "Recently updated",
               chapters: [...story.chapters, {
                 title: String(data.get("chapterTitle")).trim(),
-                body: String(data.get("chapterBody")).trim()
+                body: window.storyEditor.value(document.getElementById("chapterBody"))
               }]
             }
           });
@@ -652,7 +679,7 @@
               coverImage: await uploadImage(data.get("coverImage"), "/api/uploads/story-cover"),
               chapters: [{
                 title: String(data.get("chapterTitle")).trim(),
-                body: String(data.get("chapterBody")).trim()
+                body: window.storyEditor.value(document.getElementById("firstChapterBody"))
               }]
             }
           });

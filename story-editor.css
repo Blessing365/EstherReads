@@ -1,0 +1,73 @@
+.rich-text-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px;
+  border: 1px solid #dedbd2;
+  border-bottom: 0;
+  border-radius: 5px 5px 0 0;
+  background: #f7f4ee;
+}
+
+.rich-text-toolbar button {
+  min-width: 32px;
+  min-height: 30px;
+  border: 1px solid #dedbd2;
+  border-radius: 4px;
+  background: #fffefa;
+  color: #344d40;
+  font-size: 13px;
+}
+
+.rich-text-toolbar button:hover,
+.rich-text-toolbar button:focus-visible {
+  border-color: #829986;
+  outline: 2px solid rgba(83, 110, 94, .15);
+}
+
+.rich-text-content {
+  min-height: 155px;
+  max-height: 55vh;
+  overflow-y: auto;
+  border: 1px solid #dedbd2;
+  border-radius: 0 0 5px 5px;
+  outline: none;
+  padding: 10px 11px;
+  background: #fffefa;
+  color: var(--ink);
+  font: 13px/1.7 var(--serif, Georgia, serif);
+  white-space: pre-wrap;
+}
+
+.rich-text-content:focus {
+  border-color: #829986;
+  box-shadow: 0 0 0 3px rgba(83, 110, 94, .1);
+}
+
+.rich-text-content:empty::before {
+  content: attr(data-placeholder);
+  color: #92948b;
+  pointer-events: none;
+}
+
+.rich-text-content p,
+.rich-text-content div { margin: 0 0 1em; }
+
+.rich-text-hint { color: #777c71; font-size: 10px; line-height: 1.6; }
+
+:root[data-theme="dark"] .rich-text-toolbar {
+  border-color: var(--line);
+  background: var(--section, var(--paper));
+}
+
+:root[data-theme="dark"] .rich-text-toolbar button,
+:root[data-theme="dark"] .rich-text-content {
+  border-color: var(--line);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+:root[data-theme="dark"] .rich-text-hint,
+:root[data-theme="dark"] .rich-text-content:empty::before {
+  color: var(--muted);
+}

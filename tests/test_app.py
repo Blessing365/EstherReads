@@ -85,6 +85,8 @@ class WebsiteBackendTests(unittest.TestCase):
         self.assertEqual(content["authorName"], "Clara Bennett")
         self.assertTrue(content["authorImage"].startswith("https://"))
         self.assertEqual(content["contactEmail"], "")
+        self.assertEqual(content["homepageEyebrow"], "A little corner for the curious")
+        self.assertEqual(content["homepageTitle"], "Stories for the in-between moments.")
 
     def test_author_can_update_name_photo_contact_and_biography(self):
         payload = {
@@ -92,6 +94,10 @@ class WebsiteBackendTests(unittest.TestCase):
             "authorImage": "",
             "contactEmail": "author@example.com",
             "bio": "I'm Clara, a writer.",
+            "homepageEyebrow": "A note from the author",
+            "homepageTitle": "A different welcome",
+            "homepageCopy": "A new introduction for the homepage.",
+            "homepageNote": "Words shared slowly",
         }
         unauthorized = self.json_request("PUT", "/api/author/profile", payload, self.csrf_token())
         self.assertEqual(unauthorized.status_code, 401)
@@ -104,6 +110,13 @@ class WebsiteBackendTests(unittest.TestCase):
             token,
         )
         self.assertEqual(invalid_email.status_code, 400)
+        invalid_homepage_copy = self.json_request(
+            "PUT",
+            "/api/author/profile",
+            {**payload, "homepageCopy": ""},
+            token,
+        )
+        self.assertEqual(invalid_homepage_copy.status_code, 400)
         invalid_photo = self.json_request(
             "PUT",
             "/api/author/profile",
@@ -137,6 +150,10 @@ class WebsiteBackendTests(unittest.TestCase):
         self.assertEqual(public_content["authorImage"], author_image)
         self.assertEqual(public_content["contactEmail"], "author@example.com")
         self.assertEqual(public_content["bio"], "I'm New, a writer.")
+        self.assertEqual(public_content["homepageEyebrow"], "A note from the author")
+        self.assertEqual(public_content["homepageTitle"], "A different welcome")
+        self.assertEqual(public_content["homepageCopy"], "A new introduction for the homepage.")
+        self.assertEqual(public_content["homepageNote"], "Words shared slowly")
 
         removed = self.json_request(
             "PUT",
@@ -146,6 +163,44 @@ class WebsiteBackendTests(unittest.TestCase):
         )
         self.assertEqual(removed.status_code, 200)
         self.assertEqual(self.client.get("/api/public").get_json()["authorImage"], "")
+
+    def test_public_story_rating_counts_include_approved_reviews_only(self):
+        with self.app.app_context():
+            from app import get_database
+
+            database = get_database()
+            stories = database.execute(
+                "SELECT id FROM stories ORDER BY sort_order LIMIT 2"
+            ).fetchall()
+            first_story, second_story = [row["id"] for row in stories]
+            reader_ids = []
+            for index in range(4):
+                cursor = database.execute(
+                    """INSERT INTO users (email, password_hash, role, display_name)
+                       VALUES (?, 'unused-test-hash', 'reader', ?)""",
+                    (f"rating-reader-{index}@example.com", f"Reader {index}"),
+                )
+                reader_ids.append(cursor.lastrowid)
+            database.executemany(
+                """INSERT INTO feedback
+                   (story_id, user_id, kind, chapter_position, rating, title, body, status, created_at)
+                   VALUES (?, ?, 'review', NULL, ?, 'Review', 'Review text', ?, 1)""",
+                [
+                    (first_story, reader_ids[0], 5, "approved"),
+                    (first_story, reader_ids[1], 4, "approved"),
+                    (first_story, reader_ids[2], 3, "pending"),
+                    (second_story, reader_ids[3], 5, "approved"),
+                ],
+            )
+            database.commit()
+
+        stories = self.client.get("/api/public").get_json()["stories"]
+        by_id = {story["id"]: story for story in stories}
+        self.assertEqual(by_id[first_story]["ratingCount"], 2)
+        self.assertEqual(by_id[first_story]["averageRating"], 4.5)
+        self.assertEqual(by_id[second_story]["ratingCount"], 1)
+        self.assertEqual(by_id[second_story]["averageRating"], 5.0)
+        self.assertEqual(by_id[stories[2]["id"]]["ratingCount"], 0)
 
     def test_author_can_create_edit_and_delete_poems(self):
         token = self.csrf_token()
@@ -280,6 +335,63 @@ class WebsiteBackendTests(unittest.TestCase):
         logout = self.json_request("POST", "/api/auth/logout", {}, token)
         self.assertEqual(logout.status_code, 200)
         self.assertEqual(self.client.get("/api/stories").status_code, 401)
+
+    def test_story_chapter_formatting_is_preserved_and_unsafe_markup_is_removed(self):
+        token = self.sign_in()
+        created = self.json_request(
+            "POST",
+            "/api/stories",
+            {
+                "title": "Formatted story",
+                "description": "A story with formatted text.",
+                "blurb": "A longer introduction for the story page.",
+                "chapters": [
+                    {
+                        "title": "Formatted chapter",
+                        "body": (
+                            '<p><strong>Bold</strong> and <em>italic</em>.</p>'
+                            '<p><span style="font-weight: 700; font-style: italic">'
+                            "Pasted from a document.</span></p>"
+                            '<script>alert("unsafe")</script>'
+                            '<img src=x onerror="alert(1)">'
+                        ),
+                    }
+                ],
+            },
+            token,
+        )
+        self.assertEqual(created.status_code, 201, created.get_data(as_text=True))
+        story = created.get_json()["story"]
+        chapter_body = story["chapters"][0]["body"]
+        self.assertIn("<strong>Bold</strong>", chapter_body)
+        self.assertIn("<em>italic</em>", chapter_body)
+        self.assertIn("<strong><em>Pasted from a document.</em></strong>", chapter_body)
+        self.assertNotIn("<script", chapter_body)
+        self.assertNotIn("alert", chapter_body)
+        self.assertNotIn("<img", chapter_body)
+        self.assertNotIn("onerror", chapter_body)
+
+        public_story = next(
+            item
+            for item in self.client.get("/api/public").get_json()["stories"]
+            if item["id"] == story["id"]
+        )
+        self.assertEqual(public_story["chapters"][0]["body"], chapter_body)
+
+        invalid = self.json_request(
+            "PUT",
+            f"/api/stories/{story['id']}",
+            {
+                "title": "Formatted story",
+                "description": "A story with formatted text.",
+                "blurb": "A longer introduction for the story page.",
+                "chapters": [
+                    {"title": "Too long", "body": "x" * 12001}
+                ],
+            },
+            token,
+        )
+        self.assertEqual(invalid.status_code, 400)
 
     def test_reader_registration_and_role_aware_session(self):
         token = self.csrf_token()

@@ -1,0 +1,112 @@
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #191e1b;
+  --ink: #e9e9df;
+  --muted: #b0b5a9;
+  --line: #3a433b;
+  --green: #688672;
+  --green-dark: #bed0c0;
+  --card: #232a25;
+  --section: #202722;
+}
+
+:root[data-theme="dark"],
+:root[data-theme="dark"] body {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+:root[data-theme="dark"] .topbar,
+:root[data-theme="dark"] .poem-section,
+:root[data-theme="dark"] .author-section,
+:root[data-theme="dark"] .story-card,
+:root[data-theme="dark"] .poem-card,
+:root[data-theme="dark"] .contact-card,
+:root[data-theme="dark"] .modal,
+:root[data-theme="dark"] .modal-header,
+:root[data-theme="dark"] .editor,
+:root[data-theme="dark"] .feedback-card,
+:root[data-theme="dark"] .comment-card,
+:root[data-theme="dark"] .review-card,
+:root[data-theme="dark"] .form,
+:root[data-theme="dark"] .card,
+:root[data-theme="dark"] .chapter-nav button,
+:root[data-theme="dark"] .chapter-select,
+:root[data-theme="dark"] .chapter-editor,
+:root[data-theme="dark"] .status:not(:empty),
+:root[data-theme="dark"] .button-quiet {
+  background-color: var(--card);
+  border-color: var(--line);
+}
+
+:root[data-theme="dark"] .poem-section,
+:root[data-theme="dark"] .author-section {
+  background-color: var(--section);
+}
+
+:root[data-theme="dark"] .field input,
+:root[data-theme="dark"] .field textarea,
+:root[data-theme="dark"] .field select,
+:root[data-theme="dark"] .comment-form textarea,
+:root[data-theme="dark"] .chapter-select {
+  background-color: var(--paper);
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+:root[data-theme="dark"] .nav,
+:root[data-theme="dark"] .hero-copy,
+:root[data-theme="dark"] .hero-note,
+:root[data-theme="dark"] .section-heading p,
+:root[data-theme="dark"] .story-info p,
+:root[data-theme="dark"] .poem-body,
+:root[data-theme="dark"] .author-copy p,
+:root[data-theme="dark"] .contact-card p,
+:root[data-theme="dark"] .footer,
+:root[data-theme="dark"] .intro,
+:root[data-theme="dark"] .story-summary,
+:root[data-theme="dark"] .chapter-body,
+:root[data-theme="dark"] .comment-body,
+:root[data-theme="dark"] .review-body,
+:root[data-theme="dark"] .story-description,
+:root[data-theme="dark"] .feedback-body,
+:root[data-theme="dark"] .prototype-note,
+:root[data-theme="dark"] .login-footer,
+:root[data-theme="dark"] .hint,
+:root[data-theme="dark"] .field-hint,
+:root[data-theme="dark"] .empty-state {
+  color: var(--muted);
+}
+
+:root[data-theme="dark"] .field label,
+:root[data-theme="dark"] .toggle-password,
+:root[data-theme="dark"] .story-meta,
+:root[data-theme="dark"] .story-footer,
+:root[data-theme="dark"] .story-detail-link,
+:root[data-theme="dark"] .poem-actions button,
+:root[data-theme="dark"] .poem-actions a {
+  color: var(--green-dark);
+}
+
+.theme-toggle {
+  position: fixed;
+  z-index: 30;
+  right: 18px;
+  bottom: 18px;
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 0 14px;
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, .14);
+  font: 600 11px/1 var(--sans, Arial, sans-serif);
+  cursor: pointer;
+}
+
+.theme-toggle:hover { border-color: var(--green); }
+.theme-toggle:focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+
+@media (max-width: 420px) {
+  .theme-toggle { right: 12px; bottom: 12px; min-height: 35px; }
+}
